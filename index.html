@@ -4,25 +4,32 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>朝活トラッカー</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg-top:#ffe3c2; --bg-mid:#fff6ec; --bg-bot:#e7f4ff;
-    --card:#ffffff; --ink:#41435a; --sub:#8b8ca3; --line:#f0e6da;
-    --accent:#ff8c42; --accent2:#ffb454;
-    --c-taka:#ff8c42; --c-haru:#43b96a; --c-take:#9b6dde;
-    --g0:#f1e7da;
-    --shadow:0 8px 28px rgba(255,150,80,.12);
+    --bg-top:#FCF6EC; --bg-mid:#F2EADC; --bg-bot:#ECE6DC;
+    --card:#FCFAF4; --ink:#26241F; --sub:#6E6A62; --line:#E6DECF;
+    --accent:#C98A5E; --accent2:#B0723F;
+    --c-taka:#C98A5E; --c-haru:#7E9B72; --c-take:#8C7AA6;
+    --g0:#E6DECF;
+    --shadow:0 6px 24px rgba(176,114,63,.12);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{
-    font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;
-    background:linear-gradient(165deg,var(--bg-top) 0%,var(--bg-mid) 42%,var(--bg-bot) 100%);
+    font-family:'Noto Sans JP',sans-serif;font-weight:300;
+    background:
+      radial-gradient(900px 500px at 50% -4%, rgba(214,150,95,.22), transparent 56%),
+      radial-gradient(680px 520px at 85% 104%, rgba(110,133,147,.10), transparent 58%),
+      linear-gradient(168deg,var(--bg-top) 0%,var(--bg-mid) 55%,var(--bg-bot) 100%);
     background-attachment:fixed;
     color:var(--ink); min-height:100vh; padding:24px 16px 60px;
   }
+  .mincho{font-family:'Shippori Mincho',serif}
   .wrap{max-width:760px;margin:0 auto}
   header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;flex-wrap:wrap}
-  .logo{font-size:22px;font-weight:800;display:flex;align-items:center}
+  .logo{font-family:'Shippori Mincho',serif;font-size:22px;font-weight:600;display:flex;align-items:center;letter-spacing:.08em}
   .logo span{color:var(--accent)}
   .logo-mark{display:inline-flex;align-items:center;margin-right:8px;color:var(--accent)}
   .logo-mark svg{display:block}
@@ -58,7 +65,7 @@
   .cal-card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:var(--shadow);margin-bottom:20px}
   .cal-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;gap:10px;flex-wrap:wrap}
   .cal-titlewrap{display:flex;align-items:center;gap:10px}
-  .cal-title{font-size:21px;font-weight:800;min-width:128px;text-align:center}
+  .cal-title{font-family:'Shippori Mincho',serif;font-size:21px;font-weight:600;min-width:128px;text-align:center;letter-spacing:.06em}
   .cal-nav{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--accent);font-size:20px;font-weight:800;cursor:pointer;line-height:1;padding:0}
   .cal-nav:hover{border-color:var(--accent);background:#fff7ec}
   .cal-sum{font-size:13px;color:var(--sub);font-weight:700}
@@ -86,8 +93,8 @@
   @media(max-width:560px){.grid{grid-template-columns:1fr}}
   .mcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
   .mhead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-  .mname{font-weight:800;font-size:15px}
-  .streak-big{font-size:16px;font-weight:800;color:var(--accent)}
+  .mname{font-family:'Shippori Mincho',serif;font-weight:600;font-size:16px;letter-spacing:.04em}
+  .streak-big{font-family:'Shippori Mincho',serif;font-size:16px;font-weight:600;color:var(--accent)}
   .streak-big.cold{color:var(--sub)}
   .msub{font-size:12px;color:var(--sub);margin-top:8px;line-height:1.6}
   .msub b{color:var(--ink)}

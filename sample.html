@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>静朝 — デザインサンプル（瞑想）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1:#FCF6EC; --bg2:#F2EADC; --bg3:#ECE6DC;
+    --sumi:#26241F; --sumi-sub:#65605700; --sub:#6E6A62; --faint:#A29C8E;
+    --gold:#C98A5E; --gold-deep:#B0723F; --ai:#6E8593;
+    --line:#E6DECF;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Noto Sans JP',sans-serif;font-weight:300;
+    background:
+      radial-gradient(920px 520px at 50% -4%, rgba(214,150,95,.26), transparent 56%),
+      radial-gradient(680px 520px at 85% 104%, rgba(110,133,147,.12), transparent 58%),
+      linear-gradient(168deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%);
+    background-attachment:fixed;
+    color:var(--sumi); min-height:100vh; padding:32px 24px 48px;
+    display:flex; flex-direction:column;
+  }
+  .mincho{font-family:'Shippori Mincho',serif}
+
+  .brand{display:flex;align-items:center;gap:11px;color:var(--sub);
+    font-family:'Shippori Mincho',serif;font-size:16px;font-weight:600;letter-spacing:.16em}
+  .brand .mark{width:27px;height:27px;color:var(--gold);flex-shrink:0;filter:drop-shadow(0 1px 4px rgba(201,138,94,.35))}
+  .brand .mark svg{display:block;width:100%;height:100%}
+
+  .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    animation:rise 1.3s cubic-bezier(.2,.7,.2,1) both}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  .breath-wrap{position:relative;width:340px;height:340px;display:flex;align-items:center;justify-content:center}
+  /* 灯る光 */
+  .glow{position:absolute;inset:40px;border-radius:50%;
+    background:radial-gradient(circle, rgba(255,238,214,.9), rgba(201,138,94,.18) 55%, transparent 72%);
+    animation:breathe 9s ease-in-out infinite;filter:blur(2px)}
+  .halo{position:absolute;inset:0;border-radius:50%;
+    background:radial-gradient(circle, rgba(201,138,94,.22), rgba(201,138,94,.05) 64%, transparent 71%);
+    animation:breathe 9s ease-in-out infinite}
+  .ring{position:absolute;inset:36px;border-radius:50%;border:1.5px solid rgba(201,138,94,.5);
+    box-shadow:0 0 30px rgba(201,138,94,.18), inset 0 0 24px rgba(201,138,94,.10);
+    animation:breathe 9s ease-in-out infinite}
+  .enso{position:absolute;inset:16px;color:var(--gold);opacity:.6;animation:spin 75s linear infinite}
+  .enso svg{display:block;width:100%;height:100%;filter:drop-shadow(0 2px 8px rgba(176,114,63,.25))}
+  @keyframes breathe{0%,100%{transform:scale(.9);opacity:.85}50%{transform:scale(1.07);opacity:1}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .core{position:relative;z-index:2;text-align:center}
+  .step-label{display:flex;align-items:center;justify-content:center;gap:15px;margin-bottom:15px}
+  .step-label span.t{font-family:'Shippori Mincho',serif;font-size:20px;font-weight:600;
+    color:var(--sub);letter-spacing:.4em;padding-left:.4em}
+  .step-label .ln{width:26px;height:1px;background:linear-gradient(90deg,transparent,var(--gold));opacity:.7}
+  .step-label .ln.r{background:linear-gradient(90deg,var(--gold),transparent)}
+  .timer{font-family:'Shippori Mincho',serif;font-size:76px;font-weight:600;
+    color:var(--sumi);letter-spacing:.03em;line-height:1;font-variant-numeric:tabular-nums;
+    text-shadow:0 2px 16px rgba(176,114,63,.12)}
+
+  .guide{font-family:'Shippori Mincho',serif;text-align:center;color:#8C8676;
+    font-size:15px;letter-spacing:.2em;margin-top:38px;font-weight:400}
+
+  .dots{display:flex;gap:11px;justify-content:center;margin-top:50px}
+  .dot{width:7px;height:7px;border-radius:50%;background:#D8D2C5;transition:.5s}
+  .dot.active{background:var(--gold);width:26px;border-radius:4px;box-shadow:0 1px 6px rgba(201,138,94,.4)}
+
+  .controls{display:flex;gap:14px;justify-content:center;align-items:center;margin-top:46px}
+  .ctl{width:52px;height:52px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.7);
+    color:var(--sub);font-size:17px;cursor:pointer;transition:.3s;display:flex;align-items:center;justify-content:center}
+  .ctl:hover{border-color:var(--gold);color:var(--gold)}
+  .ctl.main{width:auto;padding:0 34px;height:54px;border-radius:27px;font-family:'Shippori Mincho',serif;
+    font-size:16px;font-weight:600;letter-spacing:.18em;color:#fff;
+    background:linear-gradient(135deg,#CF9466,#B0723F);border:none;
+    box-shadow:0 6px 22px rgba(176,114,63,.34)}
+  .ctl.main:hover{filter:brightness(1.05)}
+
+  .note{text-align:center;color:var(--faint);font-size:11px;margin-top:42px;letter-spacing:.05em;line-height:1.9}
+
+  /* 漂う光の粒 */
+  .spark{position:fixed;width:5px;height:5px;border-radius:50%;background:rgba(201,138,94,.55);
+    filter:blur(.4px);pointer-events:none}
+  .s1{left:24%;bottom:26%;animation:float1 11s ease-in-out infinite}
+  .s2{left:73%;bottom:34%;animation:float2 14s ease-in-out infinite}
+  .s3{left:60%;bottom:18%;width:3px;height:3px;animation:float1 17s ease-in-out infinite}
+  @keyframes float1{0%,100%{transform:translateY(0);opacity:0}25%{opacity:.7}50%{transform:translateY(-40px);opacity:.5}75%{opacity:.7}}
+  @keyframes float2{0%,100%{transform:translateY(0);opacity:0}30%{opacity:.6}55%{transform:translateY(-52px);opacity:.4}80%{opacity:.6}}
+</style>
+</head>
+<body>
+  <div class="brand">
+    <span class="mark"><svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round"><circle cx="50" cy="50" r="40" stroke-dasharray="232 24" transform="rotate(-95 50 50)"/></svg></span>
+    朝活
+  </div>
+
+  <div class="stage">
+    <div class="breath-wrap">
+      <div class="halo"></div>
+      <div class="glow"></div>
+      <div class="ring"></div>
+      <div class="enso"><svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="50" cy="50" r="46" stroke-dasharray="270 19" transform="rotate(-95 50 50)"/></svg></div>
+      <div class="core">
+        <div class="step-label"><span class="ln"></span><span class="t">瞑想</span><span class="ln r"></span></div>
+        <div class="timer">05:00</div>
+      </div>
+    </div>
+
+    <div class="guide">ゆっくりと、呼吸を整えて</div>
+
+    <div class="dots">
+      <span class="dot active"></span><span class="dot"></span><span class="dot"></span>
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    </div>
+
+    <div class="controls">
+      <button class="ctl">‹</button>
+      <button class="ctl main">はじめる</button>
+      <button class="ctl">›</button>
+    </div>
+  </div>
+
+  <div class="note">静朝（せいちょう）デザインサンプル — 瞑想ステップ<br>明朝体・墨色・朝の光・呼吸する円相</div>
+
+  <span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span>
+</body>
+</html>

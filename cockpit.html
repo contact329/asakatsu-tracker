@@ -4,23 +4,30 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>朝活コックピット</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg-top:#ffe3c2; --bg-mid:#fff6ec; --bg-bot:#e7f4ff;
-    --card:#ffffff; --ink:#41435a; --sub:#8b8ca3; --line:#f0e6da;
-    --accent:#ff8c42; --accent2:#ffb454; --sky:#5bb9e8; --green:#43b96a;
-    --shadow:0 8px 28px rgba(255,150,80,.12);
+    --bg-top:#FCF6EC; --bg-mid:#F2EADC; --bg-bot:#ECE6DC;
+    --card:#FCFAF4; --ink:#26241F; --sub:#6E6A62; --line:#E6DECF;
+    --accent:#C98A5E; --accent2:#B0723F; --sky:#6E8593; --green:#7E9B72;
+    --shadow:0 6px 24px rgba(176,114,63,.12);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{
-    font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;
-    background:linear-gradient(165deg,var(--bg-top) 0%,var(--bg-mid) 42%,var(--bg-bot) 100%);
+    font-family:'Noto Sans JP',sans-serif;font-weight:300;
+    background:
+      radial-gradient(900px 500px at 50% -4%, rgba(214,150,95,.22), transparent 56%),
+      radial-gradient(680px 520px at 85% 104%, rgba(110,133,147,.10), transparent 58%),
+      linear-gradient(168deg,var(--bg-top) 0%,var(--bg-mid) 55%,var(--bg-bot) 100%);
     background-attachment:fixed;
     color:var(--ink); min-height:100vh; padding:20px 18px 50px;
   }
+  .mincho{font-family:'Shippori Mincho',serif}
   .wrap{max-width:960px;margin:0 auto}
   header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px;transition:opacity .5s}
-  .logo{font-size:21px;font-weight:800;color:var(--ink);display:flex;align-items:center}
+  .logo{font-family:'Shippori Mincho',serif;font-size:21px;font-weight:600;color:var(--ink);display:flex;align-items:center;letter-spacing:.08em}
   .logo span{color:var(--accent)}
   .logo-mark{display:inline-flex;align-items:center;margin-right:8px;color:var(--accent)}
   .logo-mark svg{display:block}
@@ -40,8 +47,8 @@
   .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
   .stepinfo{display:flex;align-items:center;gap:10px}
   .stepinfo .ic{font-size:30px}
-  .stepinfo .nm{font-size:24px;font-weight:800}
-  .timer{font-size:62px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;color:var(--ink)}
+  .stepinfo .nm{font-family:'Shippori Mincho',serif;font-size:24px;font-weight:600;letter-spacing:.1em}
+  .timer{font-family:'Shippori Mincho',serif;font-size:62px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1;color:var(--ink)}
   .timer.warn{color:var(--accent)}
   .timer.pulse{animation:tpulse .7s infinite}
   @keyframes tpulse{0%,100%{opacity:1}50%{opacity:.4}}
@@ -62,7 +69,7 @@
   .mainarea.mode-theme .videowrap{display:block;margin:16px auto 0}
   .themebox{background:linear-gradient(150deg,#fff7ec,#fff);border:2px solid #ffe6cc;border-radius:18px;padding:24px}
   .qlabel{color:var(--accent);font-size:13px;font-weight:800;letter-spacing:.06em}
-  .qtext{font-size:26px;font-weight:800;line-height:1.5;margin:12px 0}
+  .qtext{font-family:'Shippori Mincho',serif;font-size:25px;font-weight:600;line-height:1.6;margin:12px 0}
   .qrow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
   .qsub{color:var(--sub);font-size:13px}
   .mini{background:#fff;border:1px solid var(--line);color:var(--accent);font-weight:700;font-size:13px;padding:7px 12px;border-radius:9px;cursor:pointer}
@@ -82,7 +89,7 @@
 
   /* シェア：発表順（コンパクト） */
   .mainarea.mode-share .plainbox{display:flex;flex-direction:column;align-items:center;min-height:auto;background:linear-gradient(150deg,#fff7ec,#fff);border:2px solid #ffe6cc;padding:24px}
-  .share-title{font-size:14px;font-weight:800;color:var(--accent);margin-bottom:12px}
+  .share-title{font-family:'Shippori Mincho',serif;font-size:15px;font-weight:600;color:var(--accent);margin-bottom:12px;letter-spacing:.1em}
   .share-members{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;justify-content:center}
   .share-mchip{border:1px solid var(--line);background:#fff;color:var(--sub);padding:6px 14px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;transition:.15s}
   .share-mchip:hover{border-color:var(--accent)}
@@ -97,7 +104,7 @@
   .share-shuffle:disabled{opacity:.6}
   .plainbox{flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:300px;background:linear-gradient(150deg,#f0f9ff,#fff);border:2px solid #e0f0fb;border-radius:18px;padding:30px}
   .plainbox .bigic{font-size:72px;margin-bottom:14px}
-  .plainbox .bignm{font-size:24px;font-weight:800}
+  .plainbox .bignm{font-family:'Shippori Mincho',serif;font-size:24px;font-weight:600;letter-spacing:.08em}
   .plainbox .bignote{color:var(--sub);font-size:15px;margin-top:10px;line-height:1.7;max-width:440px}
 
   /* コントロール */
@@ -129,7 +136,7 @@
   .chip.on .dot{background:#fff}
   .done{display:none;background:linear-gradient(150deg,#eafaf0,#fff);border:2px solid #c9efd6;border-radius:20px;padding:30px;text-align:center;margin-top:22px}
   .done.show{display:block}
-  .done h2{font-size:26px;margin-bottom:6px}
+  .done h2{font-family:'Shippori Mincho',serif;font-size:25px;font-weight:600;margin-bottom:6px}
   .done p{color:var(--sub);font-size:14px;margin-bottom:18px}
   .done .checkin{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
   .save-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;font-weight:800;font-size:16px;padding:13px 30px;border-radius:12px;cursor:pointer;box-shadow:var(--shadow)}
