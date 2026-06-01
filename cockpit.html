@@ -190,6 +190,7 @@
     <div class="extra-bottom" id="extraBottom"></div>
   </div>
   <div class="audio-hidden"><div id="ytplayer"></div></div>
+  <audio id="localAudio" loop preload="auto"></audio>
 
   <div class="controls">
     <button class="ctl" id="prevBtn" title="前へ">‹</button>
@@ -228,7 +229,7 @@ const IC={
 };
 const STEPS = [
   {ic:IC.zen,   name:"瞑想",       min:5,  note:"目を閉じて、呼吸に集中。BGMに身をゆだねます。",
-     media:{type:"video", embed:"0KVbBWKnRsY", start:23}},
+     media:{type:"video", audio:"audio/meditation.mp3"}},
   {ic:IC.pen,   name:"メモ書き",   min:6,  note:"今日のテーマについて、手を止めず書き出す。",
      media:{type:"theme", embed:"rRE6NlKfyAo", start:636}},
   {ic:IC.talk,  name:"シェア",     min:5,  note:"書いたこと・気づきを一人ずつ共有。",
@@ -289,13 +290,19 @@ function currentVideo(){
   return m.embed ? {id:m.embed, start:m.start||0} : null;
 }
 function loadStepVideo(){
-  if(!playerReady||!player)return;
-  const v=currentVideo();
-  if(v){
-    if(running){ player.loadVideoById({videoId:v.id, startSeconds:v.start}); } // loadは自動再生
-    else { player.cueVideoById({videoId:v.id, startSeconds:v.start}); }
-  }else{
-    try{player.stopVideo()}catch(e){}
+  const m=STEPS[idx].media, la=$('localAudio');
+  // いったん両方止める
+  try{la.pause()}catch(e){}
+  if(playerReady&&player){ try{player.stopVideo()}catch(e){} }
+  if(m.audio){ // ローカル音声（広告なし）
+    if(!la.src.endsWith(m.audio)) la.src=m.audio;
+    la.currentTime=0;
+    if(running){ la.play().catch(()=>{}); }
+  }else if(m.embed){ // YouTube音声
+    if(!playerReady||!player) return;
+    const st=m.start||0;
+    if(running){ player.loadVideoById({videoId:m.embed, startSeconds:st}); }
+    else { player.cueVideoById({videoId:m.embed, startSeconds:st}); }
   }
 }
 
@@ -378,7 +385,7 @@ function render(){
   renderStage(); renderSteps(); renderProgress(); updateNextHint();
 }
 function go(i){
-  if(i<0||i>=STEPS.length){running=false;clearInterval(tick);$('playBtn').textContent='はじめる';document.body.classList.remove('focus-mode');return}
+  if(i<0||i>=STEPS.length){running=false;clearInterval(tick);$('playBtn').textContent='はじめる';document.body.classList.remove('focus-mode');try{$('localAudio').pause()}catch(e){}return}
   idx=i;remain=STEPS[i].min*60;render();
 }
 
@@ -388,7 +395,7 @@ function step(){
   if(remain<0){
     chime();
     if(idx<STEPS.length-1){go(idx+1)}
-    else{running=false;clearInterval(tick);$('playBtn').textContent='おわり';$('timer').textContent='00:00';showDone();document.body.classList.remove('focus-mode');return}
+    else{running=false;clearInterval(tick);$('playBtn').textContent='おわり';$('timer').textContent='00:00';showDone();document.body.classList.remove('focus-mode');try{$('localAudio').pause()}catch(e){}if(playerReady&&player){try{player.stopVideo()}catch(e){}}return}
   }
   $('timer').textContent=fmt(Math.max(remain,0));
   $('timer').className='timer'+(remain<=30?' warn':'')+(remain<=10?' pulse':'');
@@ -399,14 +406,17 @@ $('playBtn').onclick=()=>{
   initAudio();
   running=!running;
   document.body.classList.toggle('focus-mode', running);
+  const m=STEPS[idx].media, la=$('localAudio');
   if(running){
     tick=setInterval(step,1000);
     $('playBtn').textContent='一時停止';
-    if(playerReady && currentVideo()){ try{player.playVideo()}catch(e){} }
+    if(m.audio){ la.play().catch(()=>{}); }
+    else if(m.embed && playerReady){ try{player.playVideo()}catch(e){} }
   }else{
     clearInterval(tick);
     $('playBtn').textContent='再開';
-    if(playerReady && currentVideo()){ try{player.pauseVideo()}catch(e){} }
+    if(m.audio){ try{la.pause()}catch(e){} }
+    else if(m.embed && playerReady){ try{player.pauseVideo()}catch(e){} }
   }
 };
 $('nextBtn').onclick=()=>go(idx+1<STEPS.length?idx+1:idx);
