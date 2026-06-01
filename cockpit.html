@@ -71,6 +71,14 @@
   .extra-bottom{width:100%;max-width:430px;margin-top:22px;display:flex;flex-direction:column;align-items:center}
   .theme-card{background:linear-gradient(150deg,#fff,rgba(252,250,244,.5));border:1px solid var(--line);border-radius:16px;padding:18px 22px;text-align:center}
   .audio-hidden{position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden}
+  /* 読書本の記録 */
+  .book-box{background:linear-gradient(150deg,#fff,rgba(252,250,244,.5));border:1px solid var(--line);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow);text-align:center;width:100%}
+  .book-label{font-family:'Shippori Mincho',serif;font-size:14px;font-weight:600;color:var(--sub);margin-bottom:12px;letter-spacing:.08em}
+  .book-input{width:100%;font-family:'Noto Sans JP',sans-serif;font-size:15px;padding:11px 14px;border:1px solid var(--line);border-radius:10px;color:var(--ink);margin-bottom:10px}
+  .book-input:focus{outline:none;border-color:var(--accent)}
+  .book-save{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;font-family:'Shippori Mincho',serif;font-weight:600;font-size:14px;padding:10px 26px;border-radius:10px;cursor:pointer;letter-spacing:.12em}
+  .book-save:hover{filter:brightness(1.05)}
+  .book-msg{margin-top:10px;font-size:12px;font-weight:700;color:var(--accent);min-height:16px}
   .next-hint{display:none;text-align:right;color:var(--accent);font-size:15px;font-weight:800;margin:-6px 0 12px}
   .next-hint.show{display:block;animation:fadein .3s}
   @keyframes fadein{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
@@ -238,8 +246,8 @@ const STEPS = [
      media:{type:"plain", title:"タスク整理タイム", audio:"audio/tasks.mp3"}},
   {ic:IC.talk,  name:"シェア",     min:3,  note:"今日のタスク・宣言を共有。",
      media:{type:"plain", title:"シェアタイム", share:true}},
-  {ic:IC.book,  name:"読書",       min:10, note:"各自の本を読む or 動画を一緒に。",
-     media:{type:"video", audio:"audio/reading.mp3"}},
+  {ic:IC.book,  name:"読書",       min:10, note:"各自の本を読む。読み終えたら今日の本を記録。",
+     media:{type:"video", audio:"audio/reading.mp3", readbook:true}},
 ];
 let TODAY_THEME = {
   text:"自分のいま持っているスキルを書き出し → 3年以内に価値が下がるものは？",
@@ -344,7 +352,27 @@ function renderStage(){
   top.innerHTML=''; bot.innerHTML='';
   if(m.type==='theme'){ top.innerHTML=themeCardHTML(); }
   else if(m.share){ bot.innerHTML=renderShareOrder(true); }
+  else if(m.readbook){ bot.innerHTML=bookBoxHTML(); }
   loadStepVideo();
+}
+function bookBoxHTML(){
+  const v=(window._todayBook||'').replace(/"/g,'&quot;');
+  return `<div class="book-box">
+    <div class="book-label">今日読んだ本を記録</div>
+    <input id="bookInput" class="book-input" placeholder="本のタイトルを入力" value="${v}">
+    <button class="book-save" onclick="saveBook()">記録する</button>
+    <div id="bookMsg" class="book-msg"></div>
+  </div>`;
+}
+function saveBook(){
+  const v=$('bookInput').value.trim();
+  const msg=$('bookMsg');
+  if(!v){ msg.textContent='本のタイトルを入力してください'; return; }
+  if(!GAS_URL){ window._todayBook=v; msg.textContent='✓ 記録内容：'+v+'（接続後に保存されます）'; return; }
+  msg.textContent='保存中…';
+  fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'readBook',date:TODAY,book:v})})
+    .then(r=>r.json()).then(res=>{ window._todayBook=v; msg.textContent = res.ok ? '✓ 記録しました' : ('⚠ '+res.error); })
+    .catch(()=>{ msg.textContent='⚠ 通信エラー'; });
 }
 function themeCardHTML(){
   return `<div class="theme-card">
@@ -469,10 +497,14 @@ $('saveBtn').onclick=()=>{
 
 render();
 
-// GAS接続時：手書きが無ければシートの未完了テーマを取得
-if(GAS_URL && !savedTheme){
+// GAS接続時：今日のテーマ・読んだ本を取得
+if(GAS_URL){
   fetch(GAS_URL+'?action=data').then(r=>r.json()).then(res=>{
-    if(res && res.ok && res.theme){ TODAY_THEME=res.theme; renderStage(); }
+    if(res && res.ok){
+      if(res.theme && !savedTheme){ TODAY_THEME=res.theme; }
+      window._todayBook = res.todayBook || '';
+      renderStage();
+    }
   }).catch(()=>{});
 }
 </script>

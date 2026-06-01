@@ -22,6 +22,7 @@ function doPost(e) {
   try {
     var b = JSON.parse(e.postData.contents);
     if (b.action === 'checkin') return json(checkin(b.date, b.members));
+    if (b.action === 'readBook') return json(readBook(b.date, b.book));
     return json({ ok: false, error: 'unknown action' });
   } catch (err) { return json({ ok: false, error: String(err) }); }
 }
@@ -88,11 +89,13 @@ function getData() {
   var cols = memberCols(header);
   var cTheme = colIndex(header, 'テーマ');
   var cOwner = colIndex(header, '担当');
+  var cBook = colIndex(header, '読書本');
   var lastRow = sh.getLastRow();
   var values = sh.getRange(hr + 1, 1, lastRow - hr, sh.getLastColumn()).getValues();
   var records = {}; MEMBERS.forEach(function (m) { records[m] = []; });
   var dates = [];
   var themes = [];
+  var todayBook = '';
   var todayStr = fmt(new Date());
   values.forEach(function (row) {
     var d = row[0];
@@ -104,8 +107,9 @@ function getData() {
       if (cols[m] != null && String(row[cols[m]]).trim() !== '') records[m].push(ds);
     });
     if (cTheme >= 0) { var th = String(row[cTheme]).trim(); if (th) themes.push({ date: ds, theme: th, owner: cOwner >= 0 ? String(row[cOwner]).trim() : '' }); }
+    if (cBook >= 0 && ds === todayStr) { todayBook = String(row[cBook] || '').trim(); }
   });
-  return { ok: true, dates: dates, records: records, theme: getTheme(sh, hr, header), themes: themes };
+  return { ok: true, dates: dates, records: records, theme: getTheme(sh, hr, header), themes: themes, todayBook: todayBook };
 }
 
 /* ---------- チェックイン書き込み ---------- */
@@ -127,6 +131,29 @@ function checkin(dateStr, members) {
     if (cols[m] != null) sh.getRange(rowIdx, cols[m] + 1).setValue(members.indexOf(m) >= 0 ? 1 : '');
   });
   return { ok: true, date: dateStr, members: members };
+}
+
+/* ---------- 今日読んだ本を記録（「読書本」列、無ければ自動追加）---------- */
+function readBook(dateStr, book) {
+  var sh = getRecordSheet();
+  if (!sh) return { ok: false, error: 'record sheet not found' };
+  var hr = findHeaderRow(sh);
+  var header = headerOf(sh, hr);
+  var cBook = colIndex(header, '読書本');
+  if (cBook < 0) { // 列が無ければヘッダー行の末尾に追加
+    cBook = sh.getLastColumn();
+    sh.getRange(hr, cBook + 1).setValue('読書本');
+  }
+  var lastRow = sh.getLastRow();
+  var colA = sh.getRange(hr + 1, 1, lastRow - hr, 1).getValues();
+  var rowIdx = -1;
+  for (var i = 0; i < colA.length; i++) {
+    var d = colA[i][0];
+    if (d instanceof Date && fmt(d) === dateStr) { rowIdx = hr + 1 + i; break; }
+  }
+  if (rowIdx < 0) return { ok: false, error: 'date not found: ' + dateStr };
+  sh.getRange(rowIdx, cBook + 1).setValue(book);
+  return { ok: true, date: dateStr, book: book };
 }
 
 /* ---------- 今日のテーマ＋担当（出席表の今日の行から）---------- */
