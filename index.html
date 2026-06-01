@@ -141,8 +141,6 @@
 
   <div class="grid" id="members"></div>
 
-  <div class="summary-card" id="summaryCard"></div>
-
   <div class="theme-history" id="themeHistory" style="display:none">
     <div class="th-title">📖 これまでのテーマ</div>
     <ol class="th-list" id="thList"></ol>
@@ -199,7 +197,6 @@ function render(data){
   document.getElementById('todayLabel').textContent = fmtJP(TODAY);
   renderCalendar(data);
   renderMembers(data);
-  renderSummary(data);
   renderThemes(data);
 }
 
@@ -363,8 +360,8 @@ function saveCheckin(){
 }
 
 // 月ナビ
-document.getElementById('prevMonth').onclick=()=>{ ensureView(); viewM--; if(viewM<1){viewM=12;viewY--;} const d=CURRENT||DATA; renderCalendar(d); renderMembers(d); renderSummary(d); };
-document.getElementById('nextMonth').onclick=()=>{ ensureView(); viewM++; if(viewM>12){viewM=1;viewY++;} const d=CURRENT||DATA; renderCalendar(d); renderMembers(d); renderSummary(d); };
+document.getElementById('prevMonth').onclick=()=>{ ensureView(); viewM--; if(viewM<1){viewM=12;viewY--;} const d=CURRENT||DATA; renderCalendar(d); renderMembers(d); };
+document.getElementById('nextMonth').onclick=()=>{ ensureView(); viewM++; if(viewM>12){viewM=1;viewY++;} const d=CURRENT||DATA; renderCalendar(d); renderMembers(d); };
 
 // 起動
 if(GAS_URL){
