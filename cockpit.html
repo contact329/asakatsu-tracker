@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>朝活コックピット</title>
+<style>
+  :root{
+    --bg-top:#ffe3c2; --bg-mid:#fff6ec; --bg-bot:#e7f4ff;
+    --card:#ffffff; --ink:#41435a; --sub:#8b8ca3; --line:#f0e6da;
+    --accent:#ff8c42; --accent2:#ffb454; --sky:#5bb9e8; --green:#43b96a;
+    --shadow:0 8px 28px rgba(255,150,80,.12);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;
+    background:linear-gradient(165deg,var(--bg-top) 0%,var(--bg-mid) 42%,var(--bg-bot) 100%);
+    background-attachment:fixed;
+    color:var(--ink); min-height:100vh; padding:20px 18px 50px;
+  }
+  .wrap{max-width:960px;margin:0 auto}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+  .logo{font-size:21px;font-weight:800;color:var(--ink)}
+  .logo span{color:var(--accent)}
+  .head-right{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .meet-btn{display:flex;align-items:center;gap:8px;background:var(--accent);color:#fff;text-decoration:none;font-weight:700;font-size:13px;padding:10px 15px;border-radius:11px;box-shadow:var(--shadow)}
+  .meet-btn:hover{filter:brightness(1.05)}
+  .nav-link{color:var(--sub);font-size:13px;text-decoration:none;border:1px solid var(--line);background:var(--card);padding:9px 12px;border-radius:11px;cursor:pointer}
+  .nav-link:hover{border-color:var(--accent);color:var(--accent)}
+
+  /* ステージ */
+  .stage{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:var(--shadow)}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+  .stepinfo{display:flex;align-items:center;gap:10px}
+  .stepinfo .ic{font-size:30px}
+  .stepinfo .nm{font-size:24px;font-weight:800}
+  .timer{font-size:46px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;color:var(--ink)}
+  .timer.warn{color:var(--accent)}
+
+  .mainarea{min-height:300px}
+  .mainarea .plainbox,.mainarea .themebox,.mainarea .videowrap{display:none}
+
+  /* 動画モード：大きくメイン */
+  .videowrap{position:relative;width:100%;padding-top:56.25%;border-radius:16px;overflow:hidden;background:#000;box-shadow:0 6px 20px rgba(0,0,0,.15)}
+  .videowrap #ytplayer,.videowrap iframe{position:absolute;inset:0;width:100%!important;height:100%!important;border:0}
+  .mainarea.mode-video .videowrap{display:block}
+
+  /* テーマモード */
+  .mainarea.mode-theme .themebox{display:block}
+  .mainarea.mode-theme .videowrap{display:block;margin:16px auto 0}
+  .themebox{background:linear-gradient(150deg,#fff7ec,#fff);border:2px solid #ffe6cc;border-radius:18px;padding:24px}
+  .qlabel{color:var(--accent);font-size:13px;font-weight:800;letter-spacing:.06em}
+  .qtext{font-size:26px;font-weight:800;line-height:1.5;margin:12px 0}
+  .qrow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .qsub{color:var(--sub);font-size:13px}
+  .mini{background:#fff;border:1px solid var(--line);color:var(--accent);font-weight:700;font-size:13px;padding:7px 12px;border-radius:9px;cursor:pointer}
+  .mini:hover{border-color:var(--accent)}
+  .owner{display:inline-block;margin-left:8px;background:#fff;border:1px solid #ffd9b3;color:var(--accent);font-size:11px;font-weight:800;padding:2px 10px;border-radius:999px;vertical-align:middle}
+  .owneredit{margin-top:10px;font-size:13px;color:var(--sub);font-weight:700;display:flex;align-items:center;gap:6px}
+  .owneredit select{font-family:inherit;font-size:14px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;color:var(--ink)}
+  #themeInput{width:100%;font-size:20px;font-weight:700;line-height:1.5;border:2px solid var(--accent);border-radius:12px;padding:12px;font-family:inherit;color:var(--ink);resize:vertical;min-height:96px}
+  .editrow{display:flex;gap:8px;margin-top:10px}
+  .editrow .save{background:var(--accent);color:#fff;border:none;font-weight:700;padding:9px 18px;border-radius:9px;cursor:pointer}
+  .editrow .cancel{background:#fff;border:1px solid var(--line);color:var(--sub);padding:9px 16px;border-radius:9px;cursor:pointer}
+
+  /* プレーン（シェア・タスク整理）モード */
+  .mainarea.mode-plain .plainbox{display:flex}
+  .mainarea.mode-plain.has-bgm .videowrap{display:block;margin:0}
+  .mainarea.mode-plain.has-bgm .plainbox{display:none}
+  .plainbox{flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:300px;background:linear-gradient(150deg,#f0f9ff,#fff);border:2px solid #e0f0fb;border-radius:18px;padding:30px}
+  .plainbox .bigic{font-size:72px;margin-bottom:14px}
+  .plainbox .bignm{font-size:24px;font-weight:800}
+  .plainbox .bignote{color:var(--sub);font-size:15px;margin-top:10px;line-height:1.7;max-width:440px}
+
+  /* コントロール */
+  .controls{display:flex;gap:10px;justify-content:center;margin:18px 0 6px}
+  .ctl{background:#fff;border:1px solid var(--line);color:var(--ink);width:54px;height:54px;border-radius:14px;font-size:20px;cursor:pointer;box-shadow:var(--shadow)}
+  .ctl:hover{border-color:var(--accent)}
+  .ctl.main{width:auto;padding:0 30px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;font-size:16px}
+
+  /* タイムライン */
+  .timeline{margin-top:22px}
+  .tl-bar{height:9px;border-radius:5px;background:#fbe9d8;overflow:hidden;margin-bottom:14px}
+  .tl-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s}
+  .steps{display:flex;gap:8px}
+  @media(max-width:680px){.steps{overflow-x:auto}}
+  .step{flex:1;min-width:96px;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px 10px;text-align:center;cursor:pointer;transition:.15s;position:relative;box-shadow:0 3px 10px rgba(255,150,80,.06)}
+  .step:hover{border-color:var(--accent)}
+  .step.active{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+  .step.done{opacity:.45}
+  .step.done::after{content:"✓";position:absolute;top:6px;right:8px;color:var(--green);font-size:11px;font-weight:800}
+  .step .si{font-size:22px}
+  .step .sn{font-size:12px;font-weight:700;margin-top:4px}
+  .step .sd{font-size:11px;color:var(--sub);margin-top:2px}
+
+  /* 完了画面 */
+  .chip{border:1px solid var(--line);background:#fff;color:var(--sub);padding:10px 18px;border-radius:999px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;transition:.15s}
+  .chip:hover{border-color:var(--accent)}
+  .chip.on{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}
+  .chip .dot{width:8px;height:8px;border-radius:50%;background:var(--sub)}
+  .chip.on .dot{background:#fff}
+  .done{display:none;background:linear-gradient(150deg,#eafaf0,#fff);border:2px solid #c9efd6;border-radius:22px;padding:30px;text-align:center;margin-top:22px}
+  .done.show{display:block}
+  .done h2{font-size:26px;margin-bottom:6px}
+  .done p{color:var(--sub);font-size:14px;margin-bottom:18px}
+  .done .checkin{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
+  .save-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;font-weight:800;font-size:16px;padding:13px 30px;border-radius:12px;cursor:pointer;box-shadow:var(--shadow)}
+  .save-btn:hover{filter:brightness(1.05)}
+  #saveMsg{margin-top:14px;color:var(--green);font-size:13px;min-height:18px;font-weight:700}
+  .foot{text-align:center;color:var(--sub);font-size:11px;margin-top:26px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">朝活<span>コックピット</span> ☀</div>
+    <div class="head-right">
+      <a class="nav-link" href="/index.html">📊 記録を見る</a>
+    </div>
+  </header>
+
+  <div class="stage">
+    <div class="topbar">
+      <div class="stepinfo"><span class="ic" id="stepIcon"></span><span class="nm" id="stepName"></span></div>
+      <div class="timer" id="timer">00:00</div>
+    </div>
+    <div class="mainarea" id="mainarea">
+      <div class="plainbox" id="plainbox"></div>
+      <div class="themebox" id="themeBox"></div>
+      <div class="videowrap"><div id="ytplayer"></div></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="ctl" id="prevBtn" title="前へ">⏮</button>
+    <button class="ctl main" id="playBtn">▶ スタート</button>
+    <button class="ctl" id="nextBtn" title="次へ">⏭</button>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-bar"><i id="tlFill" style="width:0%"></i></div>
+    <div class="steps" id="steps"></div>
+  </div>
+
+  <div class="done" id="doneScreen">
+    <h2>🎉 今朝もおつかれさま！</h2>
+    <p>今日の参加者を記録しよう（来なかった人だけチェックを外す）</p>
+    <div class="checkin" id="doneCheckin"></div>
+    <button class="save-btn" id="saveBtn">📋 記録する</button>
+    <div id="saveMsg"></div>
+  </div>
+
+  <div class="foot">
+    プロトタイプ：スタートでタイマーと動画が同時に再生されます（⏭で送り確認できます）。
+  </div>
+</div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+// ===== 朝活フロー定義（合計46分）=====
+const STEPS = [
+  {ic:"🧘", name:"瞑想",       min:5,  note:"目を閉じて、呼吸に集中。BGMに身をゆだねます。",
+     media:{type:"video", embed:"0KVbBWKnRsY"}},
+  {ic:"✍️", name:"メモ書き",   min:6,  note:"今日のテーマについて、手を止めず書き出す。",
+     media:{type:"theme", embed:"rRE6NlKfyAo", start:636}},
+  {ic:"💬", name:"シェア",     min:5,  note:"書いたこと・気づきを一人ずつ共有。",
+     media:{type:"plain", icon:"💬", title:"シェアタイム", embed:"8fkK8cnG_GA"}},
+  {ic:"✅", name:"タスク整理", min:15, note:"今日やることを書き出して優先順位づけ。各自もくもく。",
+     media:{type:"plain", icon:"✅", title:"タスク整理タイム", embed:"8fkK8cnG_GA"}},
+  {ic:"💬", name:"シェア",     min:3,  note:"今日のタスク・宣言を共有。",
+     media:{type:"plain", icon:"💬", title:"シェアタイム", embed:"8fkK8cnG_GA"}},
+  {ic:"📖", name:"読書",       min:10, note:"各自の本を読む or 動画を一緒に。",
+     media:{type:"video", embed:"teUIKoTuB_0"}},
+];
+let TODAY_THEME = {
+  text:"自分のいま持っているスキルを書き出し → 3年以内に価値が下がるものは？",
+  sub:"投資No.7",
+  owner:"高階" // サンプル担当者（後でスプレッドシートの「担当」列から取得）
+};
+const MEMBERS=["高階","はる","竹花"];
+// ▼ スプレッドシート連携：デプロイ後にウェブアプリURLを貼る（空ならローカル動作）
+const GAS_URL="https://script.google.com/macros/s/AKfycbxIkRhv92IAh7JJXEmzbAKkNnPKyCmxDOTA_98IHDuOFxNcDrpG6B-7uKoqzwUqQJ_b/exec";
+// 手書き保存があれば優先
+const savedTheme=localStorage.getItem('asakatsu_theme');
+if(savedTheme){TODAY_THEME.text=savedTheme;TODAY_THEME.sub="手書きテーマ";}
+const savedOwner=localStorage.getItem('asakatsu_owner');
+if(savedOwner){TODAY_THEME.owner=savedOwner;}
+const _t=new Date();
+const TODAY=`${_t.getFullYear()}/${String(_t.getMonth()+1).padStart(2,'0')}/${String(_t.getDate()).padStart(2,'0')}`;
+
+let idx=0, remain=STEPS[0].min*60, running=false, tick=null;
+const $=id=>document.getElementById(id);
+const totalSec = STEPS.reduce((a,s)=>a+s.min*60,0);
+function fmt(s){const m=Math.floor(s/60),x=s%60;return `${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')}`}
+
+// ===== 終了音 =====
+let audioCtx=null;
+function initAudio(){ if(!audioCtx){try{audioCtx=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}} if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume(); }
+function chime(){
+  if(!audioCtx)return;
+  [523.25,659.25,783.99].forEach((f,i)=>{
+    const t=audioCtx.currentTime+i*0.18;
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type='sine'; o.frequency.value=f; o.connect(g); g.connect(audioCtx.destination);
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.3,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.9); o.start(t); o.stop(t+0.95);
+  });
+}
+
+// ===== YouTube Player =====
+let player=null, playerReady=false;
+function onYouTubeIframeAPIReady(){
+  player=new YT.Player('ytplayer',{
+    playerVars:{rel:0,playsinline:1,modestbranding:1},
+    events:{onReady:()=>{playerReady=true; loadStepVideo();}}
+  });
+}
+function currentVideo(){
+  const m=STEPS[idx].media;
+  return m.embed ? {id:m.embed, start:m.start||0} : null;
+}
+function loadStepVideo(){
+  if(!playerReady||!player)return;
+  const v=currentVideo();
+  if(v){
+    if(running){ player.loadVideoById({videoId:v.id, startSeconds:v.start}); } // loadは自動再生
+    else { player.cueVideoById({videoId:v.id, startSeconds:v.start}); }
+  }else{
+    try{player.stopVideo()}catch(e){}
+  }
+}
+
+// ===== 描画 =====
+function renderMedia(){
+  const s=STEPS[idx], m=s.media;
+  $('stepIcon').textContent=s.ic;
+  $('stepName').textContent=s.name;
+  const area=$('mainarea'); area.className='mainarea';
+  if(m.type==='theme'){
+    area.classList.add('mode-theme');
+    $('themeBox').innerHTML=`<div class="qlabel">☀ きょうのテーマ<span class="owner">担当：${TODAY_THEME.owner||'—'}</span></div>
+      <div class="qtext">${TODAY_THEME.text}</div>
+      <div class="qrow"><span class="qsub">${TODAY_THEME.sub}</span>
+      <button class="mini" onclick="editThemeInline()">✏️ このテーマを編集</button></div>`;
+  }else if(m.type==='video'){
+    area.classList.add('mode-video');
+  }else{
+    area.classList.add('mode-plain');
+    if(m.embed) area.classList.add('has-bgm');
+    $('plainbox').innerHTML=`<div class="bigic">${m.icon}</div><div class="bignm">${m.title}</div><div class="bignote">${s.note}</div>`;
+  }
+}
+function renderSteps(){
+  const c=$('steps');c.innerHTML='';
+  STEPS.forEach((s,i)=>{
+    const d=document.createElement('div');
+    d.className='step'+(i===idx?' active':'')+(i<idx?' done':'');
+    d.innerHTML=`<div class="si">${s.ic}</div><div class="sn">${s.name}</div><div class="sd">${s.min}分</div>`;
+    d.onclick=()=>go(i);
+    c.appendChild(d);
+  });
+}
+function renderProgress(){
+  let elapsed=0; for(let i=0;i<idx;i++)elapsed+=STEPS[i].min*60;
+  elapsed += STEPS[idx].min*60 - remain;
+  $('tlFill').style.width=(elapsed/totalSec*100)+'%';
+}
+function render(){
+  $('timer').textContent=fmt(Math.max(remain,0));
+  $('timer').className='timer'+(remain<=30?' warn':'');
+  renderMedia(); renderSteps(); renderProgress(); loadStepVideo();
+}
+function go(i){
+  if(i<0||i>=STEPS.length){running=false;clearInterval(tick);$('playBtn').textContent='▶ スタート';return}
+  idx=i;remain=STEPS[i].min*60;render();
+}
+
+// ===== タイマー =====
+function step(){
+  remain--;
+  if(remain<0){
+    chime();
+    if(idx<STEPS.length-1){go(idx+1)}
+    else{running=false;clearInterval(tick);$('playBtn').textContent='🎉 完了';$('timer').textContent='00:00';showDone();return}
+  }
+  $('timer').textContent=fmt(Math.max(remain,0));
+  $('timer').className='timer'+(remain<=30?' warn':'');
+  renderProgress();
+}
+$('playBtn').onclick=()=>{
+  initAudio();
+  running=!running;
+  if(running){
+    tick=setInterval(step,1000);
+    $('playBtn').textContent='⏸ 一時停止';
+    if(playerReady && currentVideo()){ try{player.playVideo()}catch(e){} }
+  }else{
+    clearInterval(tick);
+    $('playBtn').textContent='▶ 再開';
+    if(playerReady && currentVideo()){ try{player.pauseVideo()}catch(e){} }
+  }
+};
+$('nextBtn').onclick=()=>go(idx+1<STEPS.length?idx+1:idx);
+$('prevBtn').onclick=()=>go(idx>0?idx-1:0);
+
+// ===== テーマ編集（画面上で直接）=====
+function editThemeInline(){
+  $('themeBox').innerHTML=`<div class="qlabel">☀ きょうのテーマを編集</div>
+    <textarea id="themeInput">${TODAY_THEME.text}</textarea>
+    <div class="owneredit">担当：
+      <select id="ownerInput">${MEMBERS.map(m=>`<option ${TODAY_THEME.owner===m?'selected':''}>${m}</option>`).join('')}</select>
+    </div>
+    <div class="editrow">
+      <button class="save" onclick="saveThemeInline()">保存する</button>
+      <button class="cancel" onclick="renderMedia()">キャンセル</button>
+    </div>`;
+  const ta=$('themeInput'); ta.focus(); ta.setSelectionRange(ta.value.length,ta.value.length);
+}
+function saveThemeInline(){
+  const v=$('themeInput').value.trim();
+  if(v){ TODAY_THEME.text=v; TODAY_THEME.sub="手書きテーマ"; localStorage.setItem('asakatsu_theme',v); }
+  const o=$('ownerInput').value; TODAY_THEME.owner=o; localStorage.setItem('asakatsu_owner',o);
+  renderMedia();
+}
+// ===== 完了画面 =====
+function showDone(){
+  const dc=$('doneCheckin');dc.innerHTML='';
+  MEMBERS.forEach(m=>{
+    const b=document.createElement('button');
+    b.className='chip on';b.dataset.m=m;
+    b.innerHTML=`<span class="dot"></span>${m}`;
+    b.onclick=()=>b.classList.toggle('on');
+    dc.appendChild(b);
+  });
+  $('doneScreen').classList.add('show');
+  $('doneScreen').scrollIntoView({behavior:'smooth',block:'center'});
+}
+$('saveBtn').onclick=()=>{
+  const came=[...document.querySelectorAll('#doneCheckin .chip.on')].map(c=>c.dataset.m);
+  if(!GAS_URL){
+    $('saveMsg').textContent=`✓ 記録内容：${TODAY} ／ ${came.join('・')||'参加者なし'}（※スプレッドシート接続後に保存されます）`;
+    return;
+  }
+  $('saveBtn').disabled=true; $('saveMsg').textContent='保存中…';
+  fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'checkin',date:TODAY,members:came})})
+    .then(r=>r.json()).then(res=>{
+      $('saveMsg').textContent = res.ok ? `✓ ${TODAY} の参加を記録しました（${came.join('・')||'なし'}）` : ('⚠ 記録に失敗：'+res.error);
+    }).catch(e=>{ $('saveMsg').textContent='⚠ 通信エラー：'+e; }).then(()=>{ $('saveBtn').disabled=false; });
+};
+
+render();
+
+// GAS接続時：手書きが無ければシートの未完了テーマを取得
+if(GAS_URL && !savedTheme){
+  fetch(GAS_URL+'?action=data').then(r=>r.json()).then(res=>{
+    if(res && res.ok && res.theme){ TODAY_THEME=res.theme; renderMedia(); }
+  }).catch(()=>{});
+}
+</script>
+</body>
+</html>

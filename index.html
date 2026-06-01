@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>朝活トラッカー</title>
+<style>
+  :root{
+    --bg-top:#ffe3c2; --bg-mid:#fff6ec; --bg-bot:#e7f4ff;
+    --card:#ffffff; --ink:#41435a; --sub:#8b8ca3; --line:#f0e6da;
+    --accent:#ff8c42; --accent2:#ffb454;
+    --c-taka:#ff8c42; --c-haru:#43b96a; --c-take:#9b6dde;
+    --g0:#f1e7da;
+    --shadow:0 8px 28px rgba(255,150,80,.12);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;
+    background:linear-gradient(165deg,var(--bg-top) 0%,var(--bg-mid) 42%,var(--bg-bot) 100%);
+    background-attachment:fixed;
+    color:var(--ink); min-height:100vh; padding:24px 16px 60px;
+  }
+  .wrap{max-width:760px;margin:0 auto}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;flex-wrap:wrap}
+  .logo{font-size:22px;font-weight:800}
+  .logo span{color:var(--accent)}
+  .topnav{display:flex;align-items:center;gap:14px}
+  .date{color:var(--sub);font-size:13px}
+  .cockpit-link{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;text-decoration:none;font-weight:700;font-size:13px;padding:10px 15px;border-radius:11px;white-space:nowrap;box-shadow:var(--shadow)}
+  .cockpit-link:hover{filter:brightness(1.05)}
+
+  /* カレンダー */
+  .cal-card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:var(--shadow);margin-bottom:20px}
+  .cal-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;gap:10px;flex-wrap:wrap}
+  .cal-title{font-size:21px;font-weight:800}
+  .cal-sum{font-size:13px;color:var(--sub);font-weight:700}
+  .cal-sum b{color:var(--accent);font-size:18px;margin:0 2px}
+  .legend{display:flex;gap:16px;margin-bottom:14px;font-size:12px;color:var(--sub)}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0}
+  .c-taka{background:var(--c-taka)} .c-haru{background:var(--c-haru)} .c-take{background:var(--c-take)}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .cal-dow{text-align:center;font-size:11px;color:var(--sub);font-weight:700;padding-bottom:2px}
+  .cal-cell{aspect-ratio:1;border-radius:11px;background:#faf6f0;border:1px solid #f2ebe0;padding:7px 4px 5px;display:flex;flex-direction:column;align-items:center;gap:5px;position:relative}
+  .cal-cell.empty{background:transparent;border:none}
+  .cal-cell.future{opacity:.38}
+  .cal-cell.today{border:2px solid var(--accent);background:#fff3e7;box-shadow:0 0 0 3px rgba(255,140,66,.12)}
+  .cal-num{font-size:12px;font-weight:700;color:var(--ink);line-height:1}
+  .cal-cell.today .cal-num{color:var(--accent)}
+  .cal-dots{display:flex;gap:3px;flex-wrap:wrap;justify-content:center}
+  .cal-dots .dot{width:8px;height:8px}
+  @media(max-width:480px){
+    .cal-cell{padding:5px 2px 3px;gap:3px} .cal-dots .dot{width:6px;height:6px} .cal-num{font-size:11px}
+  }
+
+  /* メンバー（ストリーク） */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+  @media(max-width:560px){.grid{grid-template-columns:1fr}}
+  .mcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
+  .mhead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .mname{font-weight:800;font-size:15px}
+  .streak-big{font-size:16px;font-weight:800;color:var(--accent)}
+  .streak-big.cold{color:var(--sub)}
+  .msub{font-size:12px;color:var(--sub);margin-top:8px;line-height:1.6}
+  .msub b{color:var(--ink)}
+  .bar{height:6px;border-radius:3px;background:var(--g0);margin-top:9px;overflow:hidden}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,#7ed18a,#5cb85c)}
+
+  .foot{text-align:center;color:var(--sub);font-size:11px;margin-top:8px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">朝活<span>トラッカー</span> ☀</div>
+    <div class="topnav">
+      <span class="date" id="todayLabel"></span>
+      <a class="cockpit-link" href="/cockpit.html">☀ 今日の朝活へ →</a>
+    </div>
+  </header>
+
+  <div class="cal-card">
+    <div class="cal-head">
+      <div class="cal-title" id="calTitle"></div>
+      <div class="cal-sum" id="calSum"></div>
+    </div>
+    <div class="legend">
+      <span><i class="dot c-taka"></i>高階</span>
+      <span><i class="dot c-haru"></i>はる</span>
+      <span><i class="dot c-take"></i>竹花</span>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+
+  <div class="grid" id="members"></div>
+
+  <div class="foot">
+    ※ これはプロトタイプです（実データ：2026/01〜05）。記録はコックピットの完了画面から。
+  </div>
+</div>
+
+<script>
+// ▼ スプレッドシート連携：デプロイ後にウェブアプリURLをここに貼る（空ならデモデータで動作）
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxIkRhv92IAh7JJXEmzbAKkNnPKyCmxDOTA_98IHDuOFxNcDrpG6B-7uKoqzwUqQJ_b/exec";
+const MEMBERS = ["高階","はる","竹花"];
+const CLASS = {"高階":"c-taka","はる":"c-haru","竹花":"c-take"};
+const DOW = ["月","火","水","木","金","土","日"];
+
+function fmtToday(){const d=new Date();return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;}
+const TODAY = GAS_URL ? fmtToday() : "2026/05/31";
+
+const DATA = {"dates": ["2026/01/05", "2026/01/06", "2026/01/07", "2026/01/08", "2026/01/09", "2026/01/10", "2026/01/11", "2026/01/12", "2026/01/13", "2026/01/14", "2026/01/15", "2026/01/16", "2026/01/17", "2026/01/18", "2026/01/19", "2026/01/20", "2026/01/21", "2026/01/22", "2026/01/23", "2026/01/24", "2026/01/25", "2026/01/26", "2026/01/27", "2026/01/28", "2026/01/29", "2026/01/30", "2026/01/31", "2026/02/01", "2026/02/02", "2026/02/03", "2026/02/04", "2026/02/05", "2026/02/06", "2026/02/07", "2026/02/08", "2026/02/09", "2026/02/10", "2026/02/11", "2026/02/12", "2026/02/13", "2026/02/14", "2026/02/15", "2026/02/16", "2026/02/17", "2026/02/18", "2026/02/19", "2026/02/20", "2026/02/21", "2026/02/22", "2026/02/23", "2026/02/24", "2026/02/25", "2026/02/26", "2026/02/27", "2026/02/28", "2026/03/01", "2026/03/02", "2026/03/03", "2026/03/04", "2026/03/05", "2026/03/06", "2026/03/07", "2026/03/08", "2026/03/09", "2026/03/10", "2026/03/11", "2026/03/12", "2026/03/13", "2026/03/14", "2026/03/15", "2026/03/16", "2026/03/17", "2026/03/18", "2026/03/19", "2026/03/20", "2026/03/21", "2026/03/22", "2026/03/23", "2026/03/24", "2026/03/25", "2026/03/26", "2026/03/27", "2026/03/28", "2026/03/29", "2026/03/30", "2026/03/31", "2026/04/01", "2026/04/02", "2026/04/03", "2026/04/04", "2026/04/05", "2026/04/06", "2026/04/07", "2026/04/08", "2026/04/09", "2026/04/10", "2026/04/11", "2026/04/12", "2026/04/13", "2026/04/14", "2026/04/15", "2026/04/16", "2026/04/17", "2026/04/18", "2026/04/19", "2026/04/20", "2026/04/21", "2026/04/22", "2026/04/23", "2026/04/24", "2026/04/25", "2026/04/26", "2026/04/27", "2026/04/28", "2026/04/29", "2026/04/30", "2026/05/01", "2026/05/02", "2026/05/03", "2026/05/04", "2026/05/05", "2026/05/06", "2026/05/07", "2026/05/08", "2026/05/09", "2026/05/10", "2026/05/11", "2026/05/12", "2026/05/13", "2026/05/14", "2026/05/15", "2026/05/16", "2026/05/17", "2026/05/18", "2026/05/19", "2026/05/20", "2026/05/21", "2026/05/22", "2026/05/23", "2026/05/24", "2026/05/25", "2026/05/26", "2026/05/27", "2026/05/28", "2026/05/29", "2026/05/30", "2026/05/31"], "records": {"\u4f0a\u85e4": ["2026/01/05", "2026/01/06", "2026/01/07", "2026/01/08", "2026/01/09", "2026/01/10", "2026/01/11", "2026/01/12", "2026/01/13", "2026/01/28", "2026/01/29", "2026/01/30", "2026/02/01", "2026/02/02", "2026/02/04", "2026/02/05", "2026/02/06", "2026/02/07"], "\u9ad8\u968e": ["2026/01/05", "2026/01/06", "2026/01/07", "2026/01/08", "2026/01/09", "2026/01/10", "2026/01/11", "2026/01/12", "2026/01/13", "2026/01/14", "2026/01/15", "2026/01/17", "2026/01/18", "2026/01/19", "2026/01/20", "2026/01/21", "2026/01/22", "2026/01/26", "2026/01/27", "2026/01/28", "2026/01/29", "2026/01/30", "2026/02/01", "2026/02/02", "2026/02/03", "2026/02/04", "2026/02/05", "2026/02/06", "2026/02/07", "2026/02/09", "2026/02/25", "2026/02/26", "2026/02/28", "2026/03/04", "2026/03/05", "2026/03/06", "2026/03/11", "2026/03/13", "2026/03/14", "2026/03/15", "2026/03/17", "2026/03/18", "2026/03/19", "2026/03/20", "2026/03/21", "2026/03/22", "2026/03/24", "2026/03/25", "2026/03/26", "2026/03/27", "2026/03/28", "2026/03/30", "2026/03/31", "2026/04/02", "2026/04/03", "2026/04/04", "2026/04/05", "2026/04/06", "2026/04/07", "2026/04/09", "2026/04/10", "2026/04/11", "2026/04/13", "2026/04/14", "2026/04/16", "2026/04/17", "2026/04/18", "2026/04/20", "2026/04/21", "2026/04/22", "2026/04/23", "2026/04/24", "2026/04/25", "2026/04/27", "2026/04/28", "2026/04/29", "2026/04/30", "2026/05/01", "2026/05/02", "2026/05/03", "2026/05/04", "2026/05/05", "2026/05/07", "2026/05/09", "2026/05/10", "2026/05/12", "2026/05/13", "2026/05/14", "2026/05/15", "2026/05/16", "2026/05/17", "2026/05/18", "2026/05/19", "2026/05/21", "2026/05/22", "2026/05/23", "2026/05/24", "2026/05/25", "2026/05/26", "2026/05/27", "2026/05/28", "2026/05/30", "2026/05/31"], "\u306f\u308b": ["2026/01/06", "2026/01/07", "2026/01/08", "2026/01/09", "2026/01/10", "2026/01/11", "2026/01/12", "2026/01/13", "2026/01/14", "2026/01/15", "2026/01/17", "2026/01/18", "2026/01/19", "2026/01/20", "2026/01/21", "2026/01/22", "2026/01/26", "2026/01/27", "2026/01/28", "2026/01/29", "2026/01/30", "2026/02/01", "2026/02/02", "2026/02/03", "2026/02/05", "2026/02/09", "2026/02/25", "2026/02/26", "2026/02/28", "2026/03/04", "2026/03/05", "2026/03/06", "2026/03/09", "2026/03/11", "2026/03/13", "2026/03/16", "2026/03/18", "2026/03/20", "2026/03/22", "2026/03/23", "2026/03/24", "2026/03/25", "2026/03/26", "2026/03/27", "2026/03/28", "2026/03/29", "2026/03/30", "2026/03/31", "2026/04/02", "2026/04/03", "2026/04/04", "2026/04/05", "2026/04/06", "2026/04/07", "2026/04/08", "2026/04/09", "2026/04/10", "2026/04/11", "2026/04/13", "2026/04/14", "2026/04/15", "2026/04/16", "2026/04/17", "2026/04/18", "2026/04/20", "2026/04/21", "2026/04/22", "2026/04/24", "2026/04/26", "2026/04/28", "2026/04/29", "2026/05/02", "2026/05/03", "2026/05/04", "2026/05/05", "2026/05/07", "2026/05/09", "2026/05/12", "2026/05/14", "2026/05/15", "2026/05/17", "2026/05/18", "2026/05/20", "2026/05/21", "2026/05/22", "2026/05/23", "2026/05/24", "2026/05/25", "2026/05/26", "2026/05/27", "2026/05/28", "2026/05/30", "2026/05/31"], "\u7af9\u82b1": ["2026/04/14", "2026/04/15", "2026/04/16", "2026/04/17", "2026/04/20", "2026/04/21", "2026/04/22", "2026/04/27", "2026/04/28", "2026/04/30", "2026/05/01", "2026/05/04", "2026/05/07", "2026/05/12", "2026/05/13", "2026/05/14", "2026/05/15", "2026/05/19", "2026/05/21", "2026/05/22", "2026/05/25", "2026/05/28"]}};
+
+function ymd(s){return new Date(s.replace(/\//g,'-')+'T00:00:00')}
+function pad(n){return String(n).padStart(2,'0')}
+function fmtJP(s){const d=ymd(s);return `${d.getMonth()+1}月${d.getDate()}日(${DOW[(d.getDay()+6)%7]})`}
+
+// 今日から遡る連続参加日数
+function streak(dates){
+  const set=new Set(dates);
+  let n=0, d=ymd(TODAY);
+  if(!set.has(TODAY)) d.setDate(d.getDate()-1);
+  while(true){
+    const k=`${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}`;
+    if(set.has(k)){n++;d.setDate(d.getDate()-1)}else break;
+  }
+  return n;
+}
+function monthRate(dates){
+  const m=TODAY.slice(0,7);
+  const days=dates.filter(x=>x.startsWith(m)).length;
+  const elapsed=parseInt(TODAY.slice(8,10),10);
+  return {days, rate: elapsed?Math.round(days/elapsed*100):0};
+}
+
+function render(data){
+  document.getElementById('todayLabel').textContent = fmtJP(TODAY);
+
+  const year=+TODAY.slice(0,4), month=+TODAY.slice(5,7);
+  document.getElementById('calTitle').textContent = `${year}年${month}月`;
+
+  // その日の参加者
+  const came = ds => MEMBERS.filter(m=>(data.records[m]||[]).includes(ds));
+
+  // カレンダー生成（月曜始まり）
+  const daysInMonth=new Date(year,month,0).getDate();
+  const firstDow=(new Date(year,month-1,1).getDay()+6)%7; // 月=0 … 日=6
+  const grid=document.getElementById('calGrid'); grid.innerHTML='';
+  DOW.forEach(w=>{const e=document.createElement('div');e.className='cal-dow';e.textContent=w;grid.appendChild(e);});
+  for(let i=0;i<firstDow;i++){const e=document.createElement('div');e.className='cal-cell empty';grid.appendChild(e);}
+  let openDays=0;
+  for(let day=1;day<=daysInMonth;day++){
+    const ds=`${year}/${pad(month)}/${pad(day)}`;
+    const people=came(ds);
+    if(people.length) openDays++;
+    const isToday=(ds===TODAY), isFuture=(ds>TODAY);
+    const cell=document.createElement('div');
+    cell.className='cal-cell'+(isToday?' today':'')+(isFuture?' future':'');
+    const dots=people.map(m=>`<span class="dot ${CLASS[m]}"></span>`).join('');
+    cell.innerHTML=`<div class="cal-num">${day}</div><div class="cal-dots">${dots}</div>`;
+    grid.appendChild(cell);
+  }
+  document.getElementById('calSum').innerHTML = `今月 みんなで <b>${openDays}</b> 日 開催 🌅`;
+
+  // メンバーのストリーク
+  const mg=document.getElementById('members'); mg.innerHTML='';
+  MEMBERS.forEach(m=>{
+    const dates=data.records[m]||[];
+    const s=streak(dates);
+    const mr=monthRate(dates);
+    const el=document.createElement('div');
+    el.className='mcard';
+    el.innerHTML=`
+      <div class="mhead"><i class="dot ${CLASS[m]}"></i><span class="mname">${m}</span></div>
+      <div class="streak-big ${s>0?'':'cold'}">${s>0?'🔥 '+s+'日連続':'― お休み中'}</div>
+      <div class="msub">今月 <b>${mr.days}日</b>・${mr.rate}%　／　通算 <b>${dates.length}日</b></div>
+      <div class="bar"><i style="width:${mr.rate}%"></i></div>`;
+    mg.appendChild(el);
+  });
+}
+
+// 起動
+if(GAS_URL){
+  fetch(GAS_URL+'?action=data').then(r=>r.json()).then(res=>{
+    render(res && res.ok ? res : DATA);
+  }).catch(()=>render(DATA));
+}else{
+  render(DATA);
+}
+</script>
+</body>
+</html>
