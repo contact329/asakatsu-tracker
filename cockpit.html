@@ -69,8 +69,7 @@
   .mainarea.mode-plain.has-bgm .plainbox{display:none}
 
   /* シェア：発表順（コンパクト） */
-  .mainarea.mode-share .plainbox{display:flex;flex-direction:column;align-items:center;min-height:auto;background:linear-gradient(150deg,#fff7ec,#fff);border:2px solid #ffe6cc;padding:18px}
-  .mainarea.mode-share .videowrap{display:block;max-width:440px;margin:14px auto 0}
+  .mainarea.mode-share .plainbox{display:flex;flex-direction:column;align-items:center;min-height:auto;background:linear-gradient(150deg,#fff7ec,#fff);border:2px solid #ffe6cc;padding:24px}
   .share-title{font-size:14px;font-weight:800;color:var(--accent);margin-bottom:12px}
   .share-members{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;justify-content:center}
   .share-mchip{border:1px solid var(--line);background:#fff;color:var(--sub);padding:6px 14px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;transition:.15s}
@@ -181,11 +180,11 @@ const STEPS = [
   {ic:"✍️", name:"メモ書き",   min:6,  note:"今日のテーマについて、手を止めず書き出す。",
      media:{type:"theme", embed:"rRE6NlKfyAo", start:636}},
   {ic:"💬", name:"シェア",     min:5,  note:"書いたこと・気づきを一人ずつ共有。",
-     media:{type:"plain", icon:"💬", title:"シェアタイム", embed:"8fkK8cnG_GA", share:true}},
+     media:{type:"plain", icon:"💬", title:"シェアタイム", share:true}},
   {ic:"✅", name:"タスク整理", min:15, note:"今日やることを書き出して優先順位づけ。各自もくもく。",
      media:{type:"plain", icon:"✅", title:"タスク整理タイム", embed:"8fkK8cnG_GA"}},
   {ic:"💬", name:"シェア",     min:3,  note:"今日のタスク・宣言を共有。",
-     media:{type:"plain", icon:"💬", title:"シェアタイム", embed:"8fkK8cnG_GA", share:true}},
+     media:{type:"plain", icon:"💬", title:"シェアタイム", share:true}},
   {ic:"📖", name:"読書",       min:10, note:"各自の本を読む or 動画を一緒に。",
      media:{type:"video", embed:"teUIKoTuB_0"}},
 ];
