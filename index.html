@@ -43,6 +43,14 @@
   .ci-save:hover{filter:brightness(1.05)}
   .ci-save:disabled{opacity:.6;cursor:default}
   .ci-msg{font-size:13px;font-weight:700;color:var(--c-haru);margin-left:4px}
+  .checkin-card.alert{border-color:var(--accent);animation:cardpulse 1.6s infinite}
+  @keyframes cardpulse{0%,100%{box-shadow:var(--shadow)}50%{box-shadow:0 0 0 4px rgba(255,140,66,.28)}}
+  .ci-q.warn{color:var(--accent);font-weight:800}
+  .mcheer{font-size:12px;font-weight:700;color:var(--c-haru);margin-top:8px}
+  .mcheer.rest{color:var(--sub)}
+  .mcheer.best{color:var(--accent)}
+  .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-20px);background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:800;padding:13px 24px;border-radius:14px;box-shadow:0 8px 28px rgba(255,150,80,.4);opacity:0;transition:.4s;z-index:100;font-size:15px;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
   /* カレンダー */
   .cal-card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:var(--shadow);margin-bottom:20px}
@@ -205,6 +213,22 @@ function longestStreak(dates){
   }
   return best;
 }
+// メンバーの励まし文（途切れ防止・自己ベスト）
+function encourage(dates, s){
+  const best=longestStreak(dates);
+  if(s===0) return {text:'🌱 また一緒にやろう', cls:'rest'};
+  if(s>best) return {text:'🏆 自己ベスト更新中！', cls:'best'};
+  if(s===best && s>1) return {text:'🏆 自己ベストタイ！', cls:'best'};
+  if(best-s>0 && best-s<=3) return {text:`自己ベストまであと${best-s+1}日`, cls:''};
+  return {text:'いい調子！', cls:''};
+}
+// 画面上部トースト
+function showToast(msg){
+  let t=document.getElementById('toast');
+  if(!t){ t=document.createElement('div'); t.id='toast'; t.className='toast'; document.body.appendChild(t); }
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._timer); t._timer=setTimeout(()=>t.classList.remove('show'), 3500);
+}
 function renderSummary(data){
   const ty=+TODAY.slice(0,4), tm=+TODAY.slice(5,7);
   const isThisMonth=(viewY===ty && viewM===tm);
@@ -270,13 +294,15 @@ function renderMembers(data){
     const dates=data.records[m]||[];
     const s=streak(dates);
     const mr=monthRate(dates, viewY, viewM);
+    const ch=encourage(dates, s);
     const el=document.createElement('div');
     el.className='mcard';
     el.innerHTML=`
       <div class="mhead"><i class="dot ${CLASS[m]}"></i><span class="mname">${m}</span></div>
       <div class="streak-big ${s>0?'':'cold'}">${s>0?'🔥 '+s+'日連続':'― お休み中'}</div>
       <div class="msub">${label} <b>${mr.days}日</b>・${mr.rate}%　／　通算 <b>${dates.length}日</b></div>
-      <div class="bar"><i style="width:${mr.rate}%"></i></div>`;
+      <div class="bar"><i style="width:${mr.rate}%"></i></div>
+      ${ch?`<div class="mcheer ${ch.cls}">${ch.text}</div>`:''}`;
     mg.appendChild(el);
   });
 }
@@ -284,6 +310,12 @@ function renderMembers(data){
 // 今日の参加チェックイン（トラッカーでその場で押せる）
 function renderCheckin(data){
   document.getElementById('ciDate').textContent = fmtJP(TODAY);
+  // 今日まだ未記録なら強調して促す
+  const todayCount=MEMBERS.filter(m=>(data.records[m]||[]).includes(TODAY)).length;
+  const card=document.querySelector('.checkin-card');
+  const q=document.querySelector('.ci-q');
+  if(todayCount===0){ if(card)card.classList.add('alert'); if(q){q.textContent='⚠️ まだ今日の参加が記録されていません';q.classList.add('warn');} }
+  else { if(card)card.classList.remove('alert'); if(q){q.textContent='（来た人を選んで「記録する」）';q.classList.remove('warn');} }
   const wrap=document.getElementById('ciChips'); wrap.innerHTML='';
   MEMBERS.forEach(m=>{
     const on=(data.records[m]||[]).includes(TODAY);
@@ -322,6 +354,9 @@ function saveCheckin(){
         });
         render(CURRENT);
         setTimeout(()=>{const mm=document.getElementById('ciMsg'); if(mm)mm.textContent='✓ 記録しました';},50);
+        // ストリーク達成をお祝い
+        const cheers=came.map(m=>({m, s:streak(CURRENT.records[m]||[])})).filter(x=>x.s>=2);
+        if(cheers.length){ const top=cheers.reduce((a,b)=>b.s>a.s?b:a); showToast(`🔥 ${top.m} ${top.s}日連続！`); }
       }else{ msg.textContent='⚠ '+res.error; }
     }).catch(()=>{ msg.textContent='⚠ 通信エラー'; })
     .then(()=>{ const b=document.querySelector('.ci-save'); if(b)b.disabled=false; });

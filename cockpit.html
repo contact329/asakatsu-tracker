@@ -34,8 +34,13 @@
   .stepinfo{display:flex;align-items:center;gap:10px}
   .stepinfo .ic{font-size:30px}
   .stepinfo .nm{font-size:24px;font-weight:800}
-  .timer{font-size:46px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;color:var(--ink)}
+  .timer{font-size:62px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;color:var(--ink)}
   .timer.warn{color:var(--accent)}
+  .timer.pulse{animation:tpulse .7s infinite}
+  @keyframes tpulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .next-hint{display:none;text-align:right;color:var(--accent);font-size:15px;font-weight:800;margin:-6px 0 12px}
+  .next-hint.show{display:block;animation:fadein .3s}
+  @keyframes fadein{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 
   .mainarea{min-height:300px}
   .mainarea .plainbox,.mainarea .themebox,.mainarea .videowrap{display:none}
@@ -140,6 +145,7 @@
       <div class="stepinfo"><span class="ic" id="stepIcon"></span><span class="nm" id="stepName"></span></div>
       <div class="timer" id="timer">00:00</div>
     </div>
+    <div class="next-hint" id="nextHint"></div>
     <div class="mainarea" id="mainarea">
       <div class="plainbox" id="plainbox"></div>
       <div class="themebox" id="themeBox"></div>
@@ -314,10 +320,20 @@ function renderProgress(){
   elapsed += STEPS[idx].min*60 - remain;
   $('tlFill').style.width=(elapsed/totalSec*100)+'%';
 }
+function updateNextHint(){
+  const hint=$('nextHint');
+  if(running && remain<=30 && remain>0 && idx<STEPS.length-1){
+    const n=STEPS[idx+1];
+    hint.textContent=`⏭ まもなく → ${n.ic} ${n.name}（${n.min}分）`;
+    hint.classList.add('show');
+  }else{
+    hint.classList.remove('show');
+  }
+}
 function render(){
   $('timer').textContent=fmt(Math.max(remain,0));
-  $('timer').className='timer'+(remain<=30?' warn':'');
-  renderMedia(); renderSteps(); renderProgress(); loadStepVideo();
+  $('timer').className='timer'+(remain<=30?' warn':'')+(remain<=10?' pulse':'');
+  renderMedia(); renderSteps(); renderProgress(); loadStepVideo(); updateNextHint();
 }
 function go(i){
   if(i<0||i>=STEPS.length){running=false;clearInterval(tick);$('playBtn').textContent='▶ スタート';return}
@@ -333,7 +349,8 @@ function step(){
     else{running=false;clearInterval(tick);$('playBtn').textContent='🎉 完了';$('timer').textContent='00:00';showDone();return}
   }
   $('timer').textContent=fmt(Math.max(remain,0));
-  $('timer').className='timer'+(remain<=30?' warn':'');
+  $('timer').className='timer'+(remain<=30?' warn':'')+(remain<=10?' pulse':'');
+  updateNextHint();
   renderProgress();
 }
 $('playBtn').onclick=()=>{
