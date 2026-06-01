@@ -122,12 +122,12 @@
     <div class="logo"><span class="logo-mark"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5" fill="currentColor" stroke="none"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/></svg></span>朝活<span>トラッカー</span></div>
     <div class="topnav">
       <span class="date" id="todayLabel"></span>
-      <a class="cockpit-link" href="cockpit.html">☀ 今日の朝活へ →</a>
+      <a class="cockpit-link" href="cockpit.html">今日の朝活へ →</a>
     </div>
   </header>
 
   <div class="checkin-card">
-    <div class="ci-head">☀ <span id="ciDate"></span> の参加を記録<span class="ci-q">（来た人を選んで「記録する」）</span></div>
+    <div class="ci-head"><span id="ciDate"></span> の参加を記録<span class="ci-q">（来た人を選んで「記録する」）</span></div>
     <div class="ci-chips" id="ciChips"></div>
   </div>
 
@@ -151,7 +151,7 @@
   <div class="grid" id="members"></div>
 
   <div class="theme-history" id="themeHistory" style="display:none">
-    <div class="th-title">📖 これまでのテーマ</div>
+    <div class="th-title">これまでのテーマ</div>
     <ol class="th-list" id="thList"></ol>
   </div>
 
@@ -222,11 +222,11 @@ function longestStreak(dates){
 // メンバーの励まし文（途切れ防止・自己ベスト）
 function encourage(dates, s){
   const best=longestStreak(dates);
-  if(s===0) return {text:'🌱 また一緒にやろう', cls:'rest'};
-  if(s>best) return {text:'🏆 自己ベスト更新中！', cls:'best'};
-  if(s===best && s>1) return {text:'🏆 自己ベストタイ！', cls:'best'};
+  if(s===0) return {text:'また一緒に', cls:'rest'};
+  if(s>best) return {text:'自己ベスト更新中', cls:'best'};
+  if(s===best && s>1) return {text:'自己ベストタイ', cls:'best'};
   if(best-s>0 && best-s<=3) return {text:`自己ベストまであと${best-s+1}日`, cls:''};
-  return {text:'いい調子！', cls:''};
+  return {text:'いい調子', cls:''};
 }
 // 画面上部トースト
 function showToast(msg){
@@ -287,7 +287,7 @@ function renderCalendar(data){
     grid.appendChild(cell);
   }
   const isThisMonth=(year===+TODAY.slice(0,4) && month===+TODAY.slice(5,7));
-  document.getElementById('calSum').innerHTML = `${isThisMonth?'今月':'この月'} みんなで <b>${openDays}</b> 日 開催 🌅`;
+  document.getElementById('calSum').innerHTML = `${isThisMonth?'今月':'この月'} みんなで <b>${openDays}</b> 日 開催`;
 }
 
 // メンバーのストリーク（今月・今日基準で固定）
@@ -305,7 +305,7 @@ function renderMembers(data){
     el.className='mcard';
     el.innerHTML=`
       <div class="mhead"><i class="dot ${CLASS[m]}"></i><span class="mname">${m}</span></div>
-      <div class="streak-big ${s>0?'':'cold'}">${s>0?'🔥 '+s+'日連続':'― お休み中'}</div>
+      <div class="streak-big ${s>0?'':'cold'}">${s>0?s+'日連続':'お休み中'}</div>
       <div class="msub">${label} <b>${mr.days}日</b>・${mr.rate}%　／　通算 <b>${dates.length}日</b></div>
       <div class="bar"><i style="width:${mr.rate}%"></i></div>
       ${ch?`<div class="mcheer ${ch.cls}">${ch.text}</div>`:''}`;
@@ -320,7 +320,7 @@ function renderCheckin(data){
   const todayCount=MEMBERS.filter(m=>(data.records[m]||[]).includes(TODAY)).length;
   const card=document.querySelector('.checkin-card');
   const q=document.querySelector('.ci-q');
-  if(todayCount===0){ if(card)card.classList.add('alert'); if(q){q.textContent='⚠️ まだ今日の参加が記録されていません';q.classList.add('warn');} }
+  if(todayCount===0){ if(card)card.classList.add('alert'); if(q){q.textContent='※ まだ今日の参加が記録されていません';q.classList.add('warn');} }
   else { if(card)card.classList.remove('alert'); if(q){q.textContent='（来た人を選んで「記録する」）';q.classList.remove('warn');} }
   const wrap=document.getElementById('ciChips'); wrap.innerHTML='';
   MEMBERS.forEach(m=>{
@@ -362,7 +362,7 @@ function saveCheckin(){
         setTimeout(()=>{const mm=document.getElementById('ciMsg'); if(mm)mm.textContent='✓ 記録しました';},50);
         // ストリーク達成をお祝い
         const cheers=came.map(m=>({m, s:streak(CURRENT.records[m]||[])})).filter(x=>x.s>=2);
-        if(cheers.length){ const top=cheers.reduce((a,b)=>b.s>a.s?b:a); showToast(`🔥 ${top.m} ${top.s}日連続！`); }
+        if(cheers.length){ const top=cheers.reduce((a,b)=>b.s>a.s?b:a); showToast(`${top.m} ${top.s}日連続`); }
       }else{ msg.textContent='⚠ '+res.error; }
     }).catch(()=>{ msg.textContent='⚠ 通信エラー'; })
     .then(()=>{ const b=document.querySelector('.ci-save'); if(b)b.disabled=false; });

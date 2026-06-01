@@ -143,7 +143,9 @@
   .step.active{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
   .step.done{opacity:.45}
   .step.done::after{content:"✓";position:absolute;top:6px;right:8px;color:var(--green);font-size:11px;font-weight:800}
-  .step .si{font-size:22px}
+  .step .si{display:flex;justify-content:center;align-items:center;height:24px;color:var(--sub)}
+  .step .si svg{width:21px;height:21px}
+  .step.active .si{color:var(--accent)}
   .step .sn{font-size:12px;font-weight:700;margin-top:4px}
   .step .sd{font-size:11px;color:var(--sub);margin-top:2px}
 
@@ -169,7 +171,7 @@
   <header>
     <div class="logo"><span class="logo-mark"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5" fill="currentColor" stroke="none"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/></svg></span>朝活<span>コックピット</span></div>
     <div class="head-right">
-      <a class="nav-link" href="index.html">📊 記録を見る</a>
+      <a class="nav-link" href="index.html">記録を見る</a>
     </div>
   </header>
 
@@ -190,9 +192,9 @@
   <div class="audio-hidden"><div id="ytplayer"></div></div>
 
   <div class="controls">
-    <button class="ctl" id="prevBtn" title="前へ">⏮</button>
-    <button class="ctl main" id="playBtn">▶ スタート</button>
-    <button class="ctl" id="nextBtn" title="次へ">⏭</button>
+    <button class="ctl" id="prevBtn" title="前へ">‹</button>
+    <button class="ctl main" id="playBtn">はじめる</button>
+    <button class="ctl" id="nextBtn" title="次へ">›</button>
   </div>
 
   <div class="timeline">
@@ -201,33 +203,41 @@
   </div>
 
   <div class="done" id="doneScreen">
-    <h2>🎉 今朝もおつかれさま！</h2>
+    <h2>今朝もおつかれさま</h2>
     <p>今日の参加者を記録しよう（来なかった人だけチェックを外す）</p>
     <div class="checkin" id="doneCheckin"></div>
-    <button class="save-btn" id="saveBtn">📋 記録する</button>
+    <button class="save-btn" id="saveBtn">記録する</button>
     <div id="saveMsg"></div>
   </div>
 
   <div class="foot">
-    プロトタイプ：スタートでタイマーと動画が同時に再生されます（⏭で送り確認できます）。
+    「はじめる」でタイマーと音が流れます（‹ › で前後のステップへ移動できます）。
   </div>
 </div>
 
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
 // ===== 朝活フロー定義（合計46分）=====
+const SVGA='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">';
+const IC={
+  zen:  SVGA+'<circle cx="12" cy="5.5" r="2"/><path d="M12 8.5c-1.2 2.3-3.4 3.6-5.5 4M12 8.5c1.2 2.3 3.4 3.6 5.5 4M6 18c1.6-2.2 3.6-3.3 6-3.3s4.4 1.1 6 3.3"/></svg>',
+  pen:  SVGA+'<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+  talk: SVGA+'<path d="M21 11.5a8.4 8.4 0 0 1-12.8 7.1L3 20l1.4-5.2A8.4 8.4 0 1 1 21 11.5Z"/></svg>',
+  check:SVGA+'<path d="M9 11l3 3 9-9"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+  book: SVGA+'<path d="M2 4h6a3 3 0 0 1 3 3v13a2.5 2.5 0 0 0-2.5-2.5H2Z"/><path d="M22 4h-6a3 3 0 0 0-3 3v13a2.5 2.5 0 0 1 2.5-2.5H22Z"/></svg>'
+};
 const STEPS = [
-  {ic:"🧘", name:"瞑想",       min:5,  note:"目を閉じて、呼吸に集中。BGMに身をゆだねます。",
+  {ic:IC.zen,   name:"瞑想",       min:5,  note:"目を閉じて、呼吸に集中。BGMに身をゆだねます。",
      media:{type:"video", embed:"0KVbBWKnRsY"}},
-  {ic:"✍️", name:"メモ書き",   min:6,  note:"今日のテーマについて、手を止めず書き出す。",
+  {ic:IC.pen,   name:"メモ書き",   min:6,  note:"今日のテーマについて、手を止めず書き出す。",
      media:{type:"theme", embed:"rRE6NlKfyAo", start:636}},
-  {ic:"💬", name:"シェア",     min:5,  note:"書いたこと・気づきを一人ずつ共有。",
-     media:{type:"plain", icon:"💬", title:"シェアタイム", share:true}},
-  {ic:"✅", name:"タスク整理", min:15, note:"今日やることを書き出して優先順位づけ。各自もくもく。",
-     media:{type:"plain", icon:"✅", title:"タスク整理タイム", embed:"8fkK8cnG_GA"}},
-  {ic:"💬", name:"シェア",     min:3,  note:"今日のタスク・宣言を共有。",
-     media:{type:"plain", icon:"💬", title:"シェアタイム", share:true}},
-  {ic:"📖", name:"読書",       min:10, note:"各自の本を読む or 動画を一緒に。",
+  {ic:IC.talk,  name:"シェア",     min:5,  note:"書いたこと・気づきを一人ずつ共有。",
+     media:{type:"plain", title:"シェアタイム", share:true}},
+  {ic:IC.check, name:"タスク整理", min:15, note:"今日やることを書き出して優先順位づけ。各自もくもく。",
+     media:{type:"plain", title:"タスク整理タイム", embed:"8fkK8cnG_GA"}},
+  {ic:IC.talk,  name:"シェア",     min:3,  note:"今日のタスク・宣言を共有。",
+     media:{type:"plain", title:"シェアタイム", share:true}},
+  {ic:IC.book,  name:"読書",       min:10, note:"各自の本を読む or 動画を一緒に。",
      media:{type:"video", embed:"teUIKoTuB_0"}},
 ];
 let TODAY_THEME = {
@@ -297,10 +307,10 @@ function shareListHTML(){ return shareOrder.map(function(m){return '<li>'+m+'</l
 function renderShareOrder(re){
   var act=activeMembers();
   if(re || !shareOrder) shareOrder=shuffle(act.slice());
-  return '<div class="share-title">🎤 きょうの発表順</div>'+
+  return '<div class="share-title">きょうの発表順</div>'+
     '<div class="share-members">'+MEMBERS.map(function(m){return '<button class="share-mchip'+(shareActive[m]?' on':'')+'" onclick="toggleShareMember(\''+m+'\')">'+m+'</button>';}).join('')+'</div>'+
     '<ol class="share-list" id="shareList">'+shareListHTML()+'</ol>'+
-    '<button class="share-shuffle" onclick="reshuffleShare()">🎲 順番を決め直す</button>';
+    '<button class="share-shuffle" onclick="reshuffleShare()">↻ 順番を決め直す</button>';
 }
 function toggleShareMember(m){ activeMembers(); shareActive[m]=!shareActive[m]; shareOrder=shuffle(activeMembers().slice()); $('extraBottom').innerHTML=renderShareOrder(false); }
 function reshuffleShare(){
@@ -331,10 +341,10 @@ function renderStage(){
 }
 function themeCardHTML(){
   return `<div class="theme-card">
-    <div class="qlabel">☀ きょうのテーマ<span class="owner">担当：${TODAY_THEME.owner||'—'}</span></div>
+    <div class="qlabel">きょうのテーマ<span class="owner">担当：${TODAY_THEME.owner||'—'}</span></div>
     <div class="qtext">${TODAY_THEME.text}</div>
     <div class="qrow"><span class="qsub">${TODAY_THEME.sub}</span>
-    <button class="mini" onclick="editThemeInline()">✏️ このテーマを編集</button></div>
+    <button class="mini" onclick="editThemeInline()">テーマを編集</button></div>
   </div>`;
 }
 function renderSteps(){
@@ -356,7 +366,7 @@ function updateNextHint(){
   const hint=$('nextHint');
   if(running && remain<=30 && remain>0 && idx<STEPS.length-1){
     const n=STEPS[idx+1];
-    hint.textContent=`⏭ まもなく → ${n.ic} ${n.name}（${n.min}分）`;
+    hint.textContent=`まもなく ─ ${n.name}（${n.min}分）`;
     hint.classList.add('show');
   }else{
     hint.classList.remove('show');
@@ -368,7 +378,7 @@ function render(){
   renderStage(); renderSteps(); renderProgress(); updateNextHint();
 }
 function go(i){
-  if(i<0||i>=STEPS.length){running=false;clearInterval(tick);$('playBtn').textContent='▶ スタート';document.body.classList.remove('focus-mode');return}
+  if(i<0||i>=STEPS.length){running=false;clearInterval(tick);$('playBtn').textContent='はじめる';document.body.classList.remove('focus-mode');return}
   idx=i;remain=STEPS[i].min*60;render();
 }
 
@@ -378,7 +388,7 @@ function step(){
   if(remain<0){
     chime();
     if(idx<STEPS.length-1){go(idx+1)}
-    else{running=false;clearInterval(tick);$('playBtn').textContent='🎉 完了';$('timer').textContent='00:00';showDone();document.body.classList.remove('focus-mode');return}
+    else{running=false;clearInterval(tick);$('playBtn').textContent='おわり';$('timer').textContent='00:00';showDone();document.body.classList.remove('focus-mode');return}
   }
   $('timer').textContent=fmt(Math.max(remain,0));
   $('timer').className='timer'+(remain<=30?' warn':'')+(remain<=10?' pulse':'');
@@ -391,11 +401,11 @@ $('playBtn').onclick=()=>{
   document.body.classList.toggle('focus-mode', running);
   if(running){
     tick=setInterval(step,1000);
-    $('playBtn').textContent='⏸ 一時停止';
+    $('playBtn').textContent='一時停止';
     if(playerReady && currentVideo()){ try{player.playVideo()}catch(e){} }
   }else{
     clearInterval(tick);
-    $('playBtn').textContent='▶ 再開';
+    $('playBtn').textContent='再開';
     if(playerReady && currentVideo()){ try{player.pauseVideo()}catch(e){} }
   }
 };
@@ -404,7 +414,7 @@ $('prevBtn').onclick=()=>go(idx>0?idx-1:0);
 
 // ===== テーマ編集（画面上で直接）=====
 function editThemeInline(){
-  $('extraTop').innerHTML=`<div class="theme-card"><div class="qlabel">☀ きょうのテーマを編集</div>
+  $('extraTop').innerHTML=`<div class="theme-card"><div class="qlabel">きょうのテーマを編集</div>
     <textarea id="themeInput">${TODAY_THEME.text}</textarea>
     <div class="owneredit">担当：
       <select id="ownerInput">${MEMBERS.map(m=>`<option ${TODAY_THEME.owner===m?'selected':''}>${m}</option>`).join('')}</select>
