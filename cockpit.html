@@ -67,6 +67,16 @@
   .mainarea.mode-plain .plainbox{display:flex}
   .mainarea.mode-plain.has-bgm .videowrap{display:block;margin:0}
   .mainarea.mode-plain.has-bgm .plainbox{display:none}
+
+  /* シェア：発表順 */
+  .mainarea.mode-share .plainbox{display:flex;flex-direction:column;align-items:center;min-height:auto;background:linear-gradient(150deg,#fff7ec,#fff);border:2px solid #ffe6cc;padding:26px}
+  .mainarea.mode-share .videowrap{display:block;max-width:520px;margin:16px auto 0}
+  .share-title{font-size:15px;font-weight:800;color:var(--accent);margin-bottom:16px}
+  .share-list{counter-reset:s;list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:18px;width:100%;max-width:340px}
+  .share-list li{counter-increment:s;display:flex;align-items:center;gap:14px;font-size:22px;font-weight:800;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 20px}
+  .share-list li::before{content:counter(s);background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+  .share-shuffle{background:#fff;border:1px solid var(--accent);color:var(--accent);font-weight:800;font-size:14px;padding:10px 20px;border-radius:11px;cursor:pointer}
+  .share-shuffle:hover{background:#fff7ec}
   .plainbox{flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:300px;background:linear-gradient(150deg,#f0f9ff,#fff);border:2px solid #e0f0fb;border-radius:18px;padding:30px}
   .plainbox .bigic{font-size:72px;margin-bottom:14px}
   .plainbox .bignm{font-size:24px;font-weight:800}
@@ -164,11 +174,11 @@ const STEPS = [
   {ic:"✍️", name:"メモ書き",   min:6,  note:"今日のテーマについて、手を止めず書き出す。",
      media:{type:"theme", embed:"rRE6NlKfyAo", start:636}},
   {ic:"💬", name:"シェア",     min:5,  note:"書いたこと・気づきを一人ずつ共有。",
-     media:{type:"plain", icon:"💬", title:"シェアタイム", embed:"8fkK8cnG_GA"}},
+     media:{type:"plain", icon:"💬", title:"シェアタイム", embed:"8fkK8cnG_GA", share:true}},
   {ic:"✅", name:"タスク整理", min:15, note:"今日やることを書き出して優先順位づけ。各自もくもく。",
      media:{type:"plain", icon:"✅", title:"タスク整理タイム", embed:"8fkK8cnG_GA"}},
   {ic:"💬", name:"シェア",     min:3,  note:"今日のタスク・宣言を共有。",
-     media:{type:"plain", icon:"💬", title:"シェアタイム", embed:"8fkK8cnG_GA"}},
+     media:{type:"plain", icon:"💬", title:"シェアタイム", embed:"8fkK8cnG_GA", share:true}},
   {ic:"📖", name:"読書",       min:10, note:"各自の本を読む or 動画を一緒に。",
      media:{type:"video", embed:"teUIKoTuB_0"}},
 ];
@@ -231,6 +241,17 @@ function loadStepVideo(){
   }
 }
 
+// ===== シェアの発表順（ランダム）=====
+let shareOrder=null;
+function shuffle(a){ for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;} return a; }
+function renderShareOrder(re){
+  if(re || !shareOrder) shareOrder=shuffle(MEMBERS.slice());
+  return `<div class="share-title">🎤 きょうの発表順</div>
+    <ol class="share-list">${shareOrder.map(function(m){return '<li>'+m+'</li>';}).join('')}</ol>
+    <button class="share-shuffle" onclick="reshuffleShare()">🎲 順番を決め直す</button>`;
+}
+function reshuffleShare(){ $('plainbox').innerHTML=renderShareOrder(true); }
+
 // ===== 描画 =====
 function renderMedia(){
   const s=STEPS[idx], m=s.media;
@@ -245,6 +266,9 @@ function renderMedia(){
       <button class="mini" onclick="editThemeInline()">✏️ このテーマを編集</button></div>`;
   }else if(m.type==='video'){
     area.classList.add('mode-video');
+  }else if(m.share){
+    area.classList.add('mode-share');
+    $('plainbox').innerHTML=renderShareOrder(true);
   }else{
     area.classList.add('mode-plain');
     if(m.embed) area.classList.add('has-bgm');
