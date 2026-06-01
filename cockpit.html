@@ -211,6 +211,7 @@ function chime(){
 let player=null, playerReady=false;
 function onYouTubeIframeAPIReady(){
   player=new YT.Player('ytplayer',{
+    host:'https://www.youtube-nocookie.com',
     playerVars:{rel:0,playsinline:1,modestbranding:1},
     events:{onReady:()=>{playerReady=true; loadStepVideo();}}
   });
