@@ -86,10 +86,13 @@ function getData() {
   var hr = findHeaderRow(sh);
   var header = headerOf(sh, hr);
   var cols = memberCols(header);
+  var cTheme = colIndex(header, 'テーマ');
+  var cOwner = colIndex(header, '担当');
   var lastRow = sh.getLastRow();
   var values = sh.getRange(hr + 1, 1, lastRow - hr, sh.getLastColumn()).getValues();
   var records = {}; MEMBERS.forEach(function (m) { records[m] = []; });
   var dates = [];
+  var themes = [];
   var todayStr = fmt(new Date());
   values.forEach(function (row) {
     var d = row[0];
@@ -100,8 +103,9 @@ function getData() {
     MEMBERS.forEach(function (m) {
       if (cols[m] != null && String(row[cols[m]]).trim() !== '') records[m].push(ds);
     });
+    if (cTheme >= 0) { var th = String(row[cTheme]).trim(); if (th) themes.push({ date: ds, theme: th, owner: cOwner >= 0 ? String(row[cOwner]).trim() : '' }); }
   });
-  return { ok: true, dates: dates, records: records, theme: getTheme(sh, hr, header) };
+  return { ok: true, dates: dates, records: records, theme: getTheme(sh, hr, header), themes: themes };
 }
 
 /* ---------- チェックイン書き込み ---------- */

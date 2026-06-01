@@ -84,6 +84,18 @@
   .bar{height:6px;border-radius:3px;background:var(--g0);margin-top:9px;overflow:hidden}
   .bar i{display:block;height:100%;background:linear-gradient(90deg,#7ed18a,#5cb85c)}
 
+  /* 月次サマリー */
+  .summary-card{background:linear-gradient(150deg,#fff7ec,#fff);border:1px solid #ffe6cc;border-radius:16px;padding:15px 18px;box-shadow:var(--shadow);margin-bottom:20px;font-size:14px;font-weight:700;color:var(--ink);line-height:1.8}
+  .summary-card b{color:var(--accent)}
+  /* テーマ履歴 */
+  .theme-history{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);margin-bottom:24px}
+  .th-title{font-size:14px;font-weight:800;margin-bottom:12px}
+  .th-list{list-style:none;max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+  .th-list li{display:flex;align-items:baseline;gap:10px;font-size:13px;padding:9px 11px;background:#faf6f0;border-radius:9px}
+  .th-date{color:var(--sub);font-weight:700;flex-shrink:0;width:42px}
+  .th-text{flex:1;font-weight:600;color:var(--ink);line-height:1.4}
+  .th-owner{color:var(--accent);font-weight:700;font-size:12px;flex-shrink:0}
+
   .foot{text-align:center;color:var(--sub);font-size:11px;margin-top:8px;line-height:1.7}
 </style>
 </head>
@@ -120,6 +132,13 @@
   </div>
 
   <div class="grid" id="members"></div>
+
+  <div class="summary-card" id="summaryCard"></div>
+
+  <div class="theme-history" id="themeHistory" style="display:none">
+    <div class="th-title">📖 これまでのテーマ</div>
+    <ol class="th-list" id="thList"></ol>
+  </div>
 
   <div class="foot">
     ※ これはプロトタイプです（実データ：2026/01〜05）。記録はコックピットの完了画面から。
@@ -172,6 +191,47 @@ function render(data){
   document.getElementById('todayLabel').textContent = fmtJP(TODAY);
   renderCalendar(data);
   renderMembers(data);
+  renderSummary(data);
+  renderThemes(data);
+}
+
+// 月次サマリー（表示月連動）
+function longestStreak(dates){
+  if(!dates.length) return 0;
+  const set=[...new Set(dates)].sort();
+  let best=1, cur=1;
+  for(let i=1;i<set.length;i++){
+    if(ymd(set[i])-ymd(set[i-1])===86400000){ cur++; if(cur>best)best=cur; } else cur=1;
+  }
+  return best;
+}
+function renderSummary(data){
+  const ty=+TODAY.slice(0,4), tm=+TODAY.slice(5,7);
+  const isThisMonth=(viewY===ty && viewM===tm);
+  const label=isThisMonth?'今月':`${viewM}月`;
+  const key=`${viewY}/${pad(viewM)}`;
+  const daysInMonth=new Date(viewY,viewM,0).getDate();
+  let openDays=0;
+  for(let day=1;day<=daysInMonth;day++){
+    const ds=`${viewY}/${pad(viewM)}/${pad(day)}`;
+    if(MEMBERS.some(m=>(data.records[m]||[]).includes(ds))) openDays++;
+  }
+  const counts=MEMBERS.map(m=>({m, n:(data.records[m]||[]).filter(x=>x.startsWith(key)).length}));
+  const mvp=counts.reduce((a,b)=>b.n>a.n?b:a);
+  const best=MEMBERS.map(m=>({m, len:longestStreak(data.records[m]||[])})).reduce((a,b)=>b.len>a.len?b:a);
+  document.getElementById('summaryCard').innerHTML =
+    `📊 ${label}のまとめ：開催 <b>${openDays}日</b>　／　最長連続 🔥${best.m} ${best.len}日　／　MVP ${mvp.m}（${mvp.n}日）`;
+}
+
+// テーマ履歴（新しい順）
+function renderThemes(data){
+  const box=document.getElementById('themeHistory');
+  if(!data.themes || !data.themes.length){ box.style.display='none'; return; }
+  box.style.display='';
+  const items=data.themes.slice().reverse();
+  document.getElementById('thList').innerHTML = items.map(t=>
+    `<li><span class="th-date">${t.date.slice(5)}</span><span class="th-text">${t.theme}</span>${t.owner?`<span class="th-owner">${t.owner}</span>`:''}</li>`
+  ).join('');
 }
 
 // カレンダー（表示中の月 viewY/viewM を描画）
@@ -268,8 +328,8 @@ function saveCheckin(){
 }
 
 // 月ナビ
-document.getElementById('prevMonth').onclick=()=>{ ensureView(); viewM--; if(viewM<1){viewM=12;viewY--;} const d=CURRENT||DATA; renderCalendar(d); renderMembers(d); };
-document.getElementById('nextMonth').onclick=()=>{ ensureView(); viewM++; if(viewM>12){viewM=1;viewY++;} const d=CURRENT||DATA; renderCalendar(d); renderMembers(d); };
+document.getElementById('prevMonth').onclick=()=>{ ensureView(); viewM--; if(viewM<1){viewM=12;viewY--;} const d=CURRENT||DATA; renderCalendar(d); renderMembers(d); renderSummary(d); };
+document.getElementById('nextMonth').onclick=()=>{ ensureView(); viewM++; if(viewM>12){viewM=1;viewY++;} const d=CURRENT||DATA; renderCalendar(d); renderMembers(d); renderSummary(d); };
 
 // 起動
 if(GAS_URL){
