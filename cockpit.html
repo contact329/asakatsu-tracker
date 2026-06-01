@@ -43,15 +43,34 @@
   .nav-link:hover{border-color:var(--accent);color:var(--accent)}
 
   /* ステージ */
-  .stage{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:var(--shadow)}
+  .stage{display:flex;flex-direction:column;align-items:center;padding:14px 0 4px}
   .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
   .stepinfo{display:flex;align-items:center;gap:10px}
   .stepinfo .ic{font-size:30px}
   .stepinfo .nm{font-family:'Shippori Mincho',serif;font-size:24px;font-weight:600;letter-spacing:.1em}
-  .timer{font-family:'Shippori Mincho',serif;font-size:62px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1;color:var(--ink)}
+  .timer{font-family:'Shippori Mincho',serif;font-size:72px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1;color:var(--ink);text-shadow:0 2px 16px rgba(176,114,63,.12)}
   .timer.warn{color:var(--accent)}
   .timer.pulse{animation:tpulse .7s infinite}
   @keyframes tpulse{0%,100%{opacity:1}50%{opacity:.4}}
+  /* 呼吸する円相 */
+  .breath-wrap{position:relative;width:330px;height:330px;display:flex;align-items:center;justify-content:center;margin-top:6px}
+  .breath-wrap .halo{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle, rgba(201,138,94,.22), rgba(201,138,94,.05) 64%, transparent 71%);animation:breathe 9s ease-in-out infinite}
+  .breath-wrap .glow{position:absolute;inset:40px;border-radius:50%;background:radial-gradient(circle, rgba(255,238,214,.85), rgba(201,138,94,.16) 55%, transparent 72%);filter:blur(2px);animation:breathe 9s ease-in-out infinite}
+  .breath-wrap .ring{position:absolute;inset:34px;border-radius:50%;border:1.5px solid rgba(201,138,94,.5);box-shadow:0 0 30px rgba(201,138,94,.16), inset 0 0 22px rgba(201,138,94,.09);animation:breathe 9s ease-in-out infinite}
+  .breath-wrap .enso{position:absolute;inset:16px;color:var(--accent);opacity:.55;animation:spin 75s linear infinite}
+  .breath-wrap .enso svg{display:block;width:100%;height:100%;filter:drop-shadow(0 2px 8px rgba(176,114,63,.22))}
+  @keyframes breathe{0%,100%{transform:scale(.9);opacity:.85}50%{transform:scale(1.06);opacity:1}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .core{position:relative;z-index:2;text-align:center}
+  .step-label{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:14px}
+  .step-label .t{font-family:'Shippori Mincho',serif;font-size:19px;font-weight:600;color:var(--sub);letter-spacing:.4em;padding-left:.4em}
+  .step-label .ln{width:24px;height:1px;background:linear-gradient(90deg,transparent,var(--accent));opacity:.7}
+  .step-label .ln.r{background:linear-gradient(90deg,var(--accent),transparent)}
+  .guide{font-family:'Shippori Mincho',serif;text-align:center;color:#8C8676;font-size:15px;letter-spacing:.18em;margin-top:30px;font-weight:400;min-height:22px}
+  .extra-top{width:100%;max-width:560px;margin-bottom:4px}
+  .extra-bottom{width:100%;max-width:430px;margin-top:22px;display:flex;flex-direction:column;align-items:center}
+  .theme-card{background:linear-gradient(150deg,#fff,rgba(252,250,244,.5));border:1px solid var(--line);border-radius:16px;padding:18px 22px;text-align:center}
+  .audio-hidden{position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden}
   .next-hint{display:none;text-align:right;color:var(--accent);font-size:15px;font-weight:800;margin:-6px 0 12px}
   .next-hint.show{display:block;animation:fadein .3s}
   @keyframes fadein{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
@@ -155,17 +174,20 @@
   </header>
 
   <div class="stage">
-    <div class="topbar">
-      <div class="stepinfo"><span class="ic" id="stepIcon"></span><span class="nm" id="stepName"></span></div>
-      <div class="timer" id="timer">00:00</div>
-    </div>
     <div class="next-hint" id="nextHint"></div>
-    <div class="mainarea" id="mainarea">
-      <div class="plainbox" id="plainbox"></div>
-      <div class="themebox" id="themeBox"></div>
-      <div class="videowrap"><div id="ytplayer"></div></div>
+    <div class="extra-top" id="extraTop"></div>
+    <div class="breath-wrap">
+      <div class="halo"></div><div class="glow"></div><div class="ring"></div>
+      <div class="enso"><svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="50" cy="50" r="46" stroke-dasharray="270 19" transform="rotate(-95 50 50)"/></svg></div>
+      <div class="core">
+        <div class="step-label" id="stepLabel"></div>
+        <div class="timer" id="timer">00:00</div>
+      </div>
     </div>
+    <div class="guide" id="guide"></div>
+    <div class="extra-bottom" id="extraBottom"></div>
   </div>
+  <div class="audio-hidden"><div id="ytplayer"></div></div>
 
   <div class="controls">
     <button class="ctl" id="prevBtn" title="前へ">⏮</button>
@@ -280,7 +302,7 @@ function renderShareOrder(re){
     '<ol class="share-list" id="shareList">'+shareListHTML()+'</ol>'+
     '<button class="share-shuffle" onclick="reshuffleShare()">🎲 順番を決め直す</button>';
 }
-function toggleShareMember(m){ activeMembers(); shareActive[m]=!shareActive[m]; shareOrder=shuffle(activeMembers().slice()); $('plainbox').innerHTML=renderShareOrder(false); }
+function toggleShareMember(m){ activeMembers(); shareActive[m]=!shareActive[m]; shareOrder=shuffle(activeMembers().slice()); $('extraBottom').innerHTML=renderShareOrder(false); }
 function reshuffleShare(){
   var act=activeMembers();
   if(act.length<=1){ shareOrder=act.slice(); var e0=document.getElementById('shareList'); if(e0)e0.innerHTML=shareListHTML(); return; }
@@ -297,27 +319,23 @@ function reshuffleShare(){
 }
 
 // ===== 描画 =====
-function renderMedia(){
+function renderStage(){
   const s=STEPS[idx], m=s.media;
-  $('stepIcon').textContent=s.ic;
-  $('stepName').textContent=s.name;
-  const area=$('mainarea'); area.className='mainarea';
-  if(m.type==='theme'){
-    area.classList.add('mode-theme');
-    $('themeBox').innerHTML=`<div class="qlabel">☀ きょうのテーマ<span class="owner">担当：${TODAY_THEME.owner||'—'}</span></div>
-      <div class="qtext">${TODAY_THEME.text}</div>
-      <div class="qrow"><span class="qsub">${TODAY_THEME.sub}</span>
-      <button class="mini" onclick="editThemeInline()">✏️ このテーマを編集</button></div>`;
-  }else if(m.type==='video'){
-    area.classList.add('mode-video');
-  }else if(m.share){
-    area.classList.add('mode-share');
-    $('plainbox').innerHTML=renderShareOrder(true);
-  }else{
-    area.classList.add('mode-plain');
-    if(m.embed) area.classList.add('has-bgm');
-    $('plainbox').innerHTML=`<div class="bigic">${m.icon}</div><div class="bignm">${m.title}</div><div class="bignote">${s.note}</div>`;
-  }
+  $('stepLabel').innerHTML=`<span class="ln"></span><span class="t">${s.name}</span><span class="ln r"></span>`;
+  $('guide').textContent = m.share ? '' : (s.note||'');
+  const top=$('extraTop'), bot=$('extraBottom');
+  top.innerHTML=''; bot.innerHTML='';
+  if(m.type==='theme'){ top.innerHTML=themeCardHTML(); }
+  else if(m.share){ bot.innerHTML=renderShareOrder(true); }
+  loadStepVideo();
+}
+function themeCardHTML(){
+  return `<div class="theme-card">
+    <div class="qlabel">☀ きょうのテーマ<span class="owner">担当：${TODAY_THEME.owner||'—'}</span></div>
+    <div class="qtext">${TODAY_THEME.text}</div>
+    <div class="qrow"><span class="qsub">${TODAY_THEME.sub}</span>
+    <button class="mini" onclick="editThemeInline()">✏️ このテーマを編集</button></div>
+  </div>`;
 }
 function renderSteps(){
   const c=$('steps');c.innerHTML='';
@@ -347,7 +365,7 @@ function updateNextHint(){
 function render(){
   $('timer').textContent=fmt(Math.max(remain,0));
   $('timer').className='timer'+(remain<=30?' warn':'')+(remain<=10?' pulse':'');
-  renderMedia(); renderSteps(); renderProgress(); loadStepVideo(); updateNextHint();
+  renderStage(); renderSteps(); renderProgress(); updateNextHint();
 }
 function go(i){
   if(i<0||i>=STEPS.length){running=false;clearInterval(tick);$('playBtn').textContent='▶ スタート';document.body.classList.remove('focus-mode');return}
@@ -386,22 +404,22 @@ $('prevBtn').onclick=()=>go(idx>0?idx-1:0);
 
 // ===== テーマ編集（画面上で直接）=====
 function editThemeInline(){
-  $('themeBox').innerHTML=`<div class="qlabel">☀ きょうのテーマを編集</div>
+  $('extraTop').innerHTML=`<div class="theme-card"><div class="qlabel">☀ きょうのテーマを編集</div>
     <textarea id="themeInput">${TODAY_THEME.text}</textarea>
     <div class="owneredit">担当：
       <select id="ownerInput">${MEMBERS.map(m=>`<option ${TODAY_THEME.owner===m?'selected':''}>${m}</option>`).join('')}</select>
     </div>
     <div class="editrow">
       <button class="save" onclick="saveThemeInline()">保存する</button>
-      <button class="cancel" onclick="renderMedia()">キャンセル</button>
-    </div>`;
+      <button class="cancel" onclick="renderStage()">キャンセル</button>
+    </div></div>`;
   const ta=$('themeInput'); ta.focus(); ta.setSelectionRange(ta.value.length,ta.value.length);
 }
 function saveThemeInline(){
   const v=$('themeInput').value.trim();
   if(v){ TODAY_THEME.text=v; TODAY_THEME.sub="手書きテーマ"; localStorage.setItem('asakatsu_theme',v); }
   const o=$('ownerInput').value; TODAY_THEME.owner=o; localStorage.setItem('asakatsu_owner',o);
-  renderMedia();
+  renderStage();
 }
 // ===== 完了画面 =====
 function showDone(){
@@ -434,7 +452,7 @@ render();
 // GAS接続時：手書きが無ければシートの未完了テーマを取得
 if(GAS_URL && !savedTheme){
   fetch(GAS_URL+'?action=data').then(r=>r.json()).then(res=>{
-    if(res && res.ok && res.theme){ TODAY_THEME=res.theme; renderMedia(); }
+    if(res && res.ok && res.theme){ TODAY_THEME=res.theme; renderStage(); }
   }).catch(()=>{});
 }
 </script>
