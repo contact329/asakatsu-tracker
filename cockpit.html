@@ -19,17 +19,24 @@
     color:var(--ink); min-height:100vh; padding:20px 18px 50px;
   }
   .wrap{max-width:960px;margin:0 auto}
-  header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px}
-  .logo{font-size:21px;font-weight:800;color:var(--ink)}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px;transition:opacity .5s}
+  .logo{font-size:21px;font-weight:800;color:var(--ink);display:flex;align-items:center}
   .logo span{color:var(--accent)}
+  .logo-mark{display:inline-flex;align-items:center;margin-right:8px;color:var(--accent)}
+  .logo-mark svg{display:block}
   .head-right{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  /* 没入モード（朝活中は周辺を控えめに） */
+  body.focus-mode header{opacity:.28}
+  body.focus-mode header:hover{opacity:1}
+  body.focus-mode .timeline{opacity:.4}
+  body.focus-mode .timeline:hover{opacity:1}
   .meet-btn{display:flex;align-items:center;gap:8px;background:var(--accent);color:#fff;text-decoration:none;font-weight:700;font-size:13px;padding:10px 15px;border-radius:11px;box-shadow:var(--shadow)}
   .meet-btn:hover{filter:brightness(1.05)}
   .nav-link{color:var(--sub);font-size:13px;text-decoration:none;border:1px solid var(--line);background:var(--card);padding:9px 12px;border-radius:11px;cursor:pointer}
   .nav-link:hover{border-color:var(--accent);color:var(--accent)}
 
   /* ステージ */
-  .stage{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:var(--shadow)}
+  .stage{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:var(--shadow)}
   .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
   .stepinfo{display:flex;align-items:center;gap:10px}
   .stepinfo .ic{font-size:30px}
@@ -100,7 +107,7 @@
   .ctl.main{width:auto;padding:0 30px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;font-size:16px}
 
   /* タイムライン */
-  .timeline{margin-top:22px}
+  .timeline{margin-top:22px;transition:opacity .5s}
   .tl-bar{height:9px;border-radius:5px;background:#fbe9d8;overflow:hidden;margin-bottom:14px}
   .tl-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s}
   .steps{display:flex;gap:8px}
@@ -120,7 +127,7 @@
   .chip.on{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}
   .chip .dot{width:8px;height:8px;border-radius:50%;background:var(--sub)}
   .chip.on .dot{background:#fff}
-  .done{display:none;background:linear-gradient(150deg,#eafaf0,#fff);border:2px solid #c9efd6;border-radius:22px;padding:30px;text-align:center;margin-top:22px}
+  .done{display:none;background:linear-gradient(150deg,#eafaf0,#fff);border:2px solid #c9efd6;border-radius:20px;padding:30px;text-align:center;margin-top:22px}
   .done.show{display:block}
   .done h2{font-size:26px;margin-bottom:6px}
   .done p{color:var(--sub);font-size:14px;margin-bottom:18px}
@@ -134,7 +141,7 @@
 <body>
 <div class="wrap">
   <header>
-    <div class="logo">朝活<span>コックピット</span> ☀</div>
+    <div class="logo"><span class="logo-mark"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5" fill="currentColor" stroke="none"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/></svg></span>朝活<span>コックピット</span></div>
     <div class="head-right">
       <a class="nav-link" href="index.html">📊 記録を見る</a>
     </div>
@@ -336,7 +343,7 @@ function render(){
   renderMedia(); renderSteps(); renderProgress(); loadStepVideo(); updateNextHint();
 }
 function go(i){
-  if(i<0||i>=STEPS.length){running=false;clearInterval(tick);$('playBtn').textContent='▶ スタート';return}
+  if(i<0||i>=STEPS.length){running=false;clearInterval(tick);$('playBtn').textContent='▶ スタート';document.body.classList.remove('focus-mode');return}
   idx=i;remain=STEPS[i].min*60;render();
 }
 
@@ -346,7 +353,7 @@ function step(){
   if(remain<0){
     chime();
     if(idx<STEPS.length-1){go(idx+1)}
-    else{running=false;clearInterval(tick);$('playBtn').textContent='🎉 完了';$('timer').textContent='00:00';showDone();return}
+    else{running=false;clearInterval(tick);$('playBtn').textContent='🎉 完了';$('timer').textContent='00:00';showDone();document.body.classList.remove('focus-mode');return}
   }
   $('timer').textContent=fmt(Math.max(remain,0));
   $('timer').className='timer'+(remain<=30?' warn':'')+(remain<=10?' pulse':'');
@@ -356,6 +363,7 @@ function step(){
 $('playBtn').onclick=()=>{
   initAudio();
   running=!running;
+  document.body.classList.toggle('focus-mode', running);
   if(running){
     tick=setInterval(step,1000);
     $('playBtn').textContent='⏸ 一時停止';
