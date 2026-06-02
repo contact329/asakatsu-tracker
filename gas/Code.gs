@@ -23,6 +23,7 @@ function doPost(e) {
     var b = JSON.parse(e.postData.contents);
     if (b.action === 'checkin') return json(checkin(b.date, b.members));
     if (b.action === 'readBook') return json(readBook(b.date, b.book));
+    if (b.action === 'saveTheme') return json(saveTheme(b.date, b.theme, b.owner));
     return json({ ok: false, error: 'unknown action' });
   } catch (err) { return json({ ok: false, error: String(err) }); }
 }
@@ -154,6 +155,27 @@ function readBook(dateStr, book) {
   if (rowIdx < 0) return { ok: false, error: 'date not found: ' + dateStr };
   sh.getRange(rowIdx, cBook + 1).setValue(book);
   return { ok: true, date: dateStr, book: book };
+}
+
+/* ---------- 今日のテーマ・担当を書き込み（出席表の今日の行）---------- */
+function saveTheme(dateStr, theme, owner) {
+  var sh = getRecordSheet();
+  if (!sh) return { ok: false, error: 'record sheet not found' };
+  var hr = findHeaderRow(sh);
+  var header = headerOf(sh, hr);
+  var cTheme = colIndex(header, 'テーマ');
+  var cOwner = colIndex(header, '担当');
+  var lastRow = sh.getLastRow();
+  var colA = sh.getRange(hr + 1, 1, lastRow - hr, 1).getValues();
+  var rowIdx = -1;
+  for (var i = 0; i < colA.length; i++) {
+    var d = colA[i][0];
+    if (d instanceof Date && fmt(d) === dateStr) { rowIdx = hr + 1 + i; break; }
+  }
+  if (rowIdx < 0) return { ok: false, error: 'date not found: ' + dateStr };
+  if (cTheme >= 0) sh.getRange(rowIdx, cTheme + 1).setValue(theme);
+  if (owner && cOwner >= 0) sh.getRange(rowIdx, cOwner + 1).setValue(owner);
+  return { ok: true, date: dateStr, theme: theme, owner: owner };
 }
 
 /* ---------- 今日のテーマ＋担当（出席表の今日の行から）---------- */

@@ -272,7 +272,7 @@ const TODAY=`${_t.getFullYear()}/${String(_t.getMonth()+1).padStart(2,'0')}/${St
 
 let idx=0, remain=STEPS[0].min*60, running=false, tick=null;
 let medPhase=null, reached0=false; // 瞑想の準備/本編、0到達フラグ
-let prepSec=parseInt(localStorage.getItem('asakatsu_prep')||'0',10);
+let prepSec=parseInt(localStorage.getItem('asakatsu_prep')||'120',10);
 const $=id=>document.getElementById(id);
 const totalSec = STEPS.reduce((a,s)=>a+s.min*60,0);
 function fmt(s){const m=Math.floor(s/60),x=s%60;return `${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')}`}
@@ -506,8 +506,10 @@ function editThemeInline(){
 }
 function saveThemeInline(){
   const v=$('themeInput').value.trim();
-  if(v){ TODAY_THEME.text=v; TODAY_THEME.sub="手書きテーマ"; localStorage.setItem('asakatsu_theme',v); }
+  if(v){ TODAY_THEME.text=v; TODAY_THEME.sub="今日のテーマ"; localStorage.setItem('asakatsu_theme',v); }
   const o=$('ownerInput').value; TODAY_THEME.owner=o; localStorage.setItem('asakatsu_owner',o);
+  // スプレッドシートの今日の行にも保存
+  if(GAS_URL && v){ fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'saveTheme',date:TODAY,theme:v,owner:o})}).catch(()=>{}); }
   renderStage();
 }
 // ===== 完了画面 =====
