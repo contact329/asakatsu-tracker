@@ -102,8 +102,6 @@
   .bar i{display:block;height:100%;background:linear-gradient(90deg,#7ed18a,#5cb85c)}
 
   /* 月次サマリー */
-  .summary-card{background:linear-gradient(150deg,#fff7ec,#fff);border:1px solid #ffe6cc;border-radius:16px;padding:15px 18px;box-shadow:var(--shadow);margin-bottom:20px;font-size:14px;font-weight:700;color:var(--ink);line-height:1.8}
-  .summary-card b{color:var(--accent)}
   /* テーマ履歴 */
   .theme-history{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);margin-bottom:24px}
   .th-title{font-size:14px;font-weight:800;margin-bottom:12px}
@@ -235,24 +233,6 @@ function showToast(msg){
   t.textContent=msg; t.classList.add('show');
   clearTimeout(t._timer); t._timer=setTimeout(()=>t.classList.remove('show'), 3500);
 }
-function renderSummary(data){
-  const ty=+TODAY.slice(0,4), tm=+TODAY.slice(5,7);
-  const isThisMonth=(viewY===ty && viewM===tm);
-  const label=isThisMonth?'今月':`${viewM}月`;
-  const key=`${viewY}/${pad(viewM)}`;
-  const daysInMonth=new Date(viewY,viewM,0).getDate();
-  let openDays=0;
-  for(let day=1;day<=daysInMonth;day++){
-    const ds=`${viewY}/${pad(viewM)}/${pad(day)}`;
-    if(MEMBERS.some(m=>(data.records[m]||[]).includes(ds))) openDays++;
-  }
-  const counts=MEMBERS.map(m=>({m, n:(data.records[m]||[]).filter(x=>x.startsWith(key)).length}));
-  const mvp=counts.reduce((a,b)=>b.n>a.n?b:a);
-  const best=MEMBERS.map(m=>({m, len:longestStreak(data.records[m]||[])})).reduce((a,b)=>b.len>a.len?b:a);
-  document.getElementById('summaryCard').innerHTML =
-    `📊 ${label}のまとめ：開催 <b>${openDays}日</b>　／　最長連続 🔥${best.m} ${best.len}日　／　MVP ${mvp.m}（${mvp.n}日）`;
-}
-
 // テーマ履歴（新しい順）
 function renderThemes(data){
   const box=document.getElementById('themeHistory');
