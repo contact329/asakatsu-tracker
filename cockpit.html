@@ -79,6 +79,11 @@
   .book-save{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;font-family:'Shippori Mincho',serif;font-weight:600;font-size:14px;padding:10px 26px;border-radius:10px;cursor:pointer;letter-spacing:.12em}
   .book-save:hover{filter:brightness(1.05)}
   .book-msg{margin-top:10px;font-size:12px;font-weight:700;color:var(--accent);min-height:16px}
+  /* 瞑想前カウントダウン設定 */
+  .prep-box{display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(150deg,#fff,rgba(252,250,244,.5));border:1px solid var(--line);border-radius:14px;padding:14px 18px;box-shadow:var(--shadow);font-family:'Shippori Mincho',serif;color:var(--sub);font-size:14px;letter-spacing:.06em}
+  .prep-input{width:66px;font-family:'Noto Sans JP',sans-serif;font-size:16px;text-align:center;padding:7px;border:1px solid var(--line);border-radius:8px;color:var(--ink)}
+  .prep-input:focus{outline:none;border-color:var(--accent)}
+  .prep-unit{color:var(--sub)}
   .next-hint{display:none;text-align:right;color:var(--accent);font-size:15px;font-weight:800;margin:-6px 0 12px}
   .next-hint.show{display:block;animation:fadein .3s}
   @keyframes fadein{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
@@ -220,7 +225,7 @@
   </div>
 
   <div class="foot">
-    「はじめる」でタイマーと音が流れます（‹ › で前後のステップへ移動できます）。
+    「はじめる」で開始。時間が来ても自動では進みません（‹ › で手動で前後のステップへ）。
   </div>
 </div>
 
@@ -266,6 +271,8 @@ const _t=new Date();
 const TODAY=`${_t.getFullYear()}/${String(_t.getMonth()+1).padStart(2,'0')}/${String(_t.getDate()).padStart(2,'0')}`;
 
 let idx=0, remain=STEPS[0].min*60, running=false, tick=null;
+let medPhase=null, reached0=false; // 瞑想の準備/本編、0到達フラグ
+let prepSec=parseInt(localStorage.getItem('asakatsu_prep')||'0',10);
 const $=id=>document.getElementById(id);
 const totalSec = STEPS.reduce((a,s)=>a+s.min*60,0);
 function fmt(s){const m=Math.floor(s/60),x=s%60;return `${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')}`}
@@ -297,22 +304,24 @@ function currentVideo(){
   const m=STEPS[idx].media;
   return m.embed ? {id:m.embed, start:m.start||0} : null;
 }
-function loadStepVideo(){
+function loadStepVideo(){ // src/cueの準備のみ（再生はstartAudioで）
   const m=STEPS[idx].media, la=$('localAudio');
-  // いったん両方止める
   try{la.pause()}catch(e){}
   if(playerReady&&player){ try{player.stopVideo()}catch(e){} }
-  if(m.audio){ // ローカル音声（広告なし）
-    if(!la.src.endsWith(m.audio)) la.src=m.audio;
-    la.currentTime=0;
-    if(running){ la.play().catch(()=>{}); }
-  }else if(m.embed){ // YouTube音声
-    if(!playerReady||!player) return;
-    const st=m.start||0;
-    if(running){ player.loadVideoById({videoId:m.embed, startSeconds:st}); }
-    else { player.cueVideoById({videoId:m.embed, startSeconds:st}); }
-  }
+  if(m.audio){ if(!la.src.endsWith(m.audio)) la.src=m.audio; la.currentTime=0; }
+  else if(m.embed && playerReady){ player.cueVideoById({videoId:m.embed, startSeconds:(m.start||0)}); }
 }
+function startAudio(){
+  const m=STEPS[idx].media, la=$('localAudio');
+  if(m.audio){ la.play().catch(()=>{}); }
+  else if(m.embed && playerReady){ try{player.playVideo()}catch(e){} }
+}
+function pauseAudio(){
+  const m=STEPS[idx].media, la=$('localAudio');
+  if(m.audio){ try{la.pause()}catch(e){} }
+  else if(m.embed && playerReady){ try{player.pauseVideo()}catch(e){} }
+}
+function stopAudio(){ try{$('localAudio').pause()}catch(e){} if(playerReady&&player){try{player.stopVideo()}catch(e){}} }
 
 // ===== シェアの発表順（参加者選択＋ルーレット演出）=====
 let shareOrder=null, shareActive=null;
@@ -346,15 +355,26 @@ function reshuffleShare(){
 // ===== 描画 =====
 function renderStage(){
   const s=STEPS[idx], m=s.media;
-  $('stepLabel').innerHTML=`<span class="ln"></span><span class="t">${s.name}</span><span class="ln r"></span>`;
-  $('guide').textContent = m.share ? '' : (s.note||'');
+  let label=s.name, guide=(m.share?'':(s.note||''));
+  if(idx===0 && medPhase==='prep'){ label='準備'; guide='まもなく瞑想がはじまります'; }
+  $('stepLabel').innerHTML=`<span class="ln"></span><span class="t">${label}</span><span class="ln r"></span>`;
+  $('guide').textContent = guide;
   const top=$('extraTop'), bot=$('extraBottom');
   top.innerHTML=''; bot.innerHTML='';
-  if(m.type==='theme'){ top.innerHTML=themeCardHTML(); }
+  if(idx===0 && medPhase===null){ bot.innerHTML=prepBoxHTML(); }
+  else if(m.type==='theme'){ top.innerHTML=themeCardHTML(); }
   else if(m.share){ bot.innerHTML=renderShareOrder(true); }
   else if(m.readbook){ bot.innerHTML=bookBoxHTML(); }
   loadStepVideo();
 }
+function prepBoxHTML(){
+  return `<div class="prep-box">
+    <span class="prep-label">開始前カウントダウン</span>
+    <input id="prepInput" class="prep-input" type="number" min="0" max="600" value="${prepSec}" onchange="setPrep(this.value)">
+    <span class="prep-unit">秒</span>
+  </div>`;
+}
+function setPrep(v){ prepSec=Math.max(0, parseInt(v||'0',10)||0); localStorage.setItem('asakatsu_prep', prepSec); }
 function bookBoxHTML(){
   const v=(window._todayBook||'').replace(/"/g,'&quot;');
   return `<div class="book-box">
@@ -413,42 +433,63 @@ function render(){
   renderStage(); renderSteps(); renderProgress(); updateNextHint();
 }
 function go(i){
-  if(i<0||i>=STEPS.length){running=false;clearInterval(tick);$('playBtn').textContent='はじめる';document.body.classList.remove('focus-mode');try{$('localAudio').pause()}catch(e){}return}
-  idx=i;remain=STEPS[i].min*60;render();
+  clearInterval(tick); running=false; stopAudio();
+  document.body.classList.remove('focus-mode');
+  if(i>=STEPS.length){ $('playBtn').textContent='おわり'; showDone(); return; }
+  if(i<0) i=0;
+  idx=i; medPhase=null; reached0=false;
+  remain=STEPS[i].min*60;
+  $('playBtn').textContent='はじめる';
+  render();
 }
 
 // ===== タイマー =====
 function step(){
-  remain--;
-  if(remain<0){
-    chime();
-    if(idx<STEPS.length-1){go(idx+1)}
-    else{running=false;clearInterval(tick);$('playBtn').textContent='おわり';$('timer').textContent='00:00';showDone();document.body.classList.remove('focus-mode');try{$('localAudio').pause()}catch(e){}if(playerReady&&player){try{player.stopVideo()}catch(e){}}return}
+  if(remain<=0){
+    // 瞑想：準備カウントダウンが0 → 本編（BGM＋5分）へ自動移行
+    if(idx===0 && medPhase==='prep'){
+      medPhase='main'; remain=STEPS[0].min*60; reached0=false;
+      chime(); renderStage(); startAudio();
+      $('timer').textContent=fmt(remain); $('timer').className='timer';
+      return;
+    }
+    // それ以外：0で停止（点滅・BGM継続・自動では進まない）
+    if(!reached0){ reached0=true; chime(); }
+    $('timer').textContent='00:00';
+    $('timer').className='timer warn pulse';
+    return;
   }
+  remain--;
   $('timer').textContent=fmt(Math.max(remain,0));
   $('timer').className='timer'+(remain<=30?' warn':'')+(remain<=10?' pulse':'');
+  if(remain<=0 && !reached0){ reached0=true; chime(); }
   updateNextHint();
   renderProgress();
 }
 $('playBtn').onclick=()=>{
   initAudio();
-  running=!running;
-  document.body.classList.toggle('focus-mode', running);
-  const m=STEPS[idx].media, la=$('localAudio');
-  if(running){
-    tick=setInterval(step,1000);
+  if(!running){
+    running=true;
+    document.body.classList.add('focus-mode');
     $('playBtn').textContent='一時停止';
-    if(m.audio){ la.play().catch(()=>{}); }
-    else if(m.embed && playerReady){ try{player.playVideo()}catch(e){} }
+    if(idx===0 && medPhase===null){ // 瞑想スタート
+      reached0=false;
+      if(prepSec>0){ medPhase='prep'; remain=prepSec; renderStage(); } // 準備（BGMなし）
+      else { medPhase='main'; remain=STEPS[0].min*60; renderStage(); startAudio(); }
+    }else{
+      startAudio(); // 再開 or 他ステップ開始
+    }
+    $('timer').textContent=fmt(Math.max(remain,0));
+    tick=setInterval(step,1000);
   }else{
+    running=false;
     clearInterval(tick);
     $('playBtn').textContent='再開';
-    if(m.audio){ try{la.pause()}catch(e){} }
-    else if(m.embed && playerReady){ try{player.pauseVideo()}catch(e){} }
+    pauseAudio();
   }
 };
-$('nextBtn').onclick=()=>go(idx+1<STEPS.length?idx+1:idx);
-$('prevBtn').onclick=()=>go(idx>0?idx-1:0);
+$('nextBtn').onclick=()=>go(idx+1);
+$('prevBtn').onclick=()=>go(idx-1);
 
 // ===== テーマ編集（画面上で直接）=====
 function editThemeInline(){
