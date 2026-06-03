@@ -31,6 +31,9 @@
   .logo span{color:var(--accent)}
   .nav-link{color:var(--sub);font-size:13px;text-decoration:none;border:1px solid var(--line);background:var(--card);padding:9px 12px;border-radius:11px;cursor:pointer}
   .nav-link:hover{border-color:var(--accent);color:var(--accent)}
+  /* コックピット埋め込み時：戻るリンク不要・余白圧縮 */
+  .embed body, html.embed body{padding-top:14px}
+  html.embed .nav-link{display:none}
 
   .card{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:24px 22px;margin-bottom:18px}
   .lead{text-align:center;margin-bottom:8px}
@@ -161,6 +164,9 @@
 
 <script>
 const GAS_URL="https://script.google.com/macros/s/AKfycbxIkRhv92IAh7JJXEmzbAKkNnPKyCmxDOTA_98IHDuOFxNcDrpG6B-7uKoqzwUqQJ_b/exec";
+// コックピットのモーダル内に埋め込まれているか
+const EMBED = new URLSearchParams(location.search).has('embed') || (window.self !== window.top);
+if(EMBED){ document.documentElement.classList.add('embed'); }
 
 /* ===== 選択肢 ===== */
 const DOMAINS = [
@@ -417,6 +423,11 @@ let pickedText='';
 function pick(txt, tag){
   pickedText=txt;
   pushRecent(txt);
+  // コックピット埋め込み時は「選択＝決定」。親に送って即反映してもらう
+  if(EMBED){
+    try{ window.parent.postMessage({type:'asakatsu-pick-theme', theme:txt}, location.origin); }catch(e){}
+    return;
+  }
   document.getElementById('picked-text').textContent = txt;
   document.getElementById('picked-meta').textContent = tag;
   document.getElementById('result').style.display='none';
@@ -429,7 +440,17 @@ function reopen(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function copyPicked(){
-  navigator.clipboard.writeText(pickedText).then(()=>toast('コピーしました'),()=>toast('コピーできませんでした'));
+  const ok=()=>toast('コピーしました');
+  const fallback=()=>{
+    try{
+      const ta=document.createElement('textarea'); ta.value=pickedText;
+      ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy'); document.body.removeChild(ta); ok();
+    }catch(e){ toast('コピーできませんでした'); }
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(pickedText).then(ok, fallback);
+  }else{ fallback(); }
 }
 function toast(msg){
   const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
