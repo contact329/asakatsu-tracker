@@ -89,6 +89,9 @@
   .qsub{color:var(--sub);font-size:13px}
   .mini{background:#fff;border:1px solid var(--line);color:var(--accent);font-weight:700;font-size:13px;padding:7px 12px;border-radius:9px;cursor:pointer}
   .mini:hover{border-color:var(--accent)}
+  .mini-go{display:inline-flex;align-items:center;gap:4px;text-decoration:none;background:linear-gradient(135deg,var(--accent),var(--accent2));border:1px solid transparent;color:#fff;font-weight:700;font-size:13px;padding:7px 13px;border-radius:9px;cursor:pointer;box-shadow:0 3px 10px rgba(201,138,94,.28)}
+  .mini-go:hover{transform:translateY(-1px)}
+  .qbtns{display:flex;gap:8px;flex-wrap:wrap}
   .owner{display:inline-block;margin-left:8px;background:#fff;border:1px solid #ffd9b3;color:var(--accent);font-size:11px;font-weight:800;padding:2px 10px;border-radius:999px;vertical-align:middle}
   .owneredit{margin-top:10px;font-size:13px;color:var(--sub);font-weight:700;display:flex;align-items:center;gap:6px}
   .owneredit select{font-family:inherit;font-size:14px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;color:var(--ink)}
@@ -368,7 +371,10 @@ function themeCardHTML(){
     <div class="qlabel">きょうのテーマ<span class="owner">担当：${TODAY_THEME.owner||'—'}</span></div>
     <div class="qtext">${TODAY_THEME.text}</div>
     <div class="qrow"><span class="qsub">${TODAY_THEME.sub}</span>
-    <button class="mini" onclick="editThemeInline()">テーマを編集</button></div>
+    <span class="qbtns">
+      <a class="mini-go" href="theme.html" target="_blank" rel="noopener">🤖 テーマを選ぶ</a>
+      <button class="mini" onclick="editThemeInline()">テーマを編集</button>
+    </span></div>
   </div>`;
 }
 function renderSteps(){
