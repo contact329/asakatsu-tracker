@@ -203,7 +203,7 @@ function getTheme(sh, hr, header) {
   return null;
 }
 
-/* ---------- AI：メモ書きテーマ生成（Anthropic API プロキシ）---------- */
+/* ---------- AI：メモ書きテーマ生成（OpenAI API プロキシ）---------- */
 function genThemes(b) {
   var key = PropertiesService.getScriptProperties().getProperty('OPENAI_API_KEY');
   if (!key) return { ok: false, error: 'no_api_key' };
@@ -247,7 +247,8 @@ function genThemes(b) {
     ]
   };
   if (isReasoning) {
-    payload.max_completion_tokens = 2000; // 推論トークンを消費するため多めに確保
+    payload.max_completion_tokens = 3000;   // 推論＋本文ぶんを確保（gpt-5は推論でトークンを食う）
+    payload.reasoning_effort = 'low';        // この用途に重い推論は不要。軽くして本文に枠を残す
   } else {
     payload.max_tokens = 600;
     payload.temperature = 0.9;
@@ -264,9 +265,10 @@ function genThemes(b) {
     var code = res.getResponseCode();
     if (code !== 200) return { ok: false, error: 'api_' + code, detail: res.getContentText().slice(0, 300) };
     var data = JSON.parse(res.getContentText());
-    var text = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+    var ch = (data.choices && data.choices[0]) || {};
+    var text = (ch.message && ch.message.content) || '';
     var themes = parseThemes(text);
-    if (!themes.length) return { ok: false, error: 'parse_failed', detail: text.slice(0, 300) };
+    if (!themes.length) return { ok: false, error: 'parse_failed', detail: text.slice(0, 300), finish: ch.finish_reason || '', usage: data.usage || null };
     return { ok: true, themes: themes };
   } catch (err) {
     return { ok: false, error: 'fetch_error', detail: String(err) };
