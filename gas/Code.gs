@@ -12,6 +12,10 @@ var MEMBERS = ['高階', 'はる', '竹花']; // 記録対象
 var SHEET_ID = '1Vl7CfmmjDAkTJNrtuLgG0Gm29NwAW9737uetvSwHV3Q';
 function getSS() { return SpreadsheetApp.openById(SHEET_ID); }
 
+// ===== AI（メモ書きテーマ生成）設定 =====
+// APIキーはコードに書かず、スクリプトプロパティ OPENAI_API_KEY に保存する
+var AI_MODEL = 'gpt-5'; // 使用モデル。gpt-4o / gpt-4o-mini 等に変更可
+
 function doGet(e) {
   var a = (e && e.parameter && e.parameter.action) || 'data';
   if (a === 'data') return json(getData());
@@ -24,6 +28,7 @@ function doPost(e) {
     if (b.action === 'checkin') return json(checkin(b.date, b.members));
     if (b.action === 'readBook') return json(readBook(b.date, b.book));
     if (b.action === 'saveTheme') return json(saveTheme(b.date, b.theme, b.owner));
+    if (b.action === 'genThemes') return json(genThemes(b));
     return json({ ok: false, error: 'unknown action' });
   } catch (err) { return json({ ok: false, error: String(err) }); }
 }
@@ -196,6 +201,85 @@ function getTheme(sh, hr, header) {
     }
   }
   return null;
+}
+
+/* ---------- AI：メモ書きテーマ生成（Anthropic API プロキシ）---------- */
+function genThemes(b) {
+  var key = PropertiesService.getScriptProperties().getProperty('OPENAI_API_KEY');
+  if (!key) return { ok: false, error: 'no_api_key' };
+
+  var domains = (b.domains || []).join('、');
+  var states  = (b.states  || []).join('、');
+  var timeLbl = b.time || '';
+  var free    = (b.text || '').toString().slice(0, 400);
+  var recent  = (b.recent || []).slice(0, 12);
+
+  var sys = [
+    'あなたは『0秒思考』(赤羽雄二)式のメモ書きのテーマ(問い)を作る専門家です。',
+    '朝活で5分間、手を止めずに書くための「問い」を作ります。',
+    '良い問いの条件:',
+    '- 具体的で、その場ですぐ書き始められる',
+    '- 少し痛いところ・本音を突く（きれいごとで終わらせない）',
+    '- 完全に自分ごと（一般論やYes/Noで終わる問いは禁止）',
+    '- 抽象的すぎず、かといって浅すぎない',
+    '- 語尾は「〜は何か」「〜どうすればいいか」「〜できているか」等の開かれた問い',
+    '出力は問いだけを JSON配列で5個。各問いは45字以内の日本語。',
+    '前置き・解説・コードブロックは一切書かず、JSON配列のみを出力すること。',
+    '例: ["問い1","問い2","問い3","問い4","問い5"]'
+  ].join('\n');
+
+  var u = [];
+  if (domains) u.push('考えたい領域: ' + domains);
+  if (states)  u.push('いまの状態: ' + states);
+  if (timeLbl) u.push('時間軸: ' + timeLbl);
+  if (free)    u.push('本人の自由記述(最優先で踏まえる): 「' + free + '」');
+  if (recent.length) u.push('最近すでに考えたテーマ(重複を避ける): ' + recent.join(' / '));
+  if (!u.length) u.push('特に指定なし。人生・仕事・人間関係・成長など幅広い領域から、深く考える価値のある問いを。');
+  var userMsg = u.join('\n') + '\n\n上記を踏まえ、今朝の5分メモ書きに値する問いを5個、JSON配列で。';
+
+  // gpt-5 / o系（推論モデル）は temperature 指定不可・max_completion_tokens を使う・推論分の余裕が要る
+  var isReasoning = /^(gpt-5|o\d)/.test(AI_MODEL);
+  var payload = {
+    model: AI_MODEL,
+    messages: [
+      { role: 'system', content: sys },
+      { role: 'user', content: userMsg }
+    ]
+  };
+  if (isReasoning) {
+    payload.max_completion_tokens = 2000; // 推論トークンを消費するため多めに確保
+  } else {
+    payload.max_tokens = 600;
+    payload.temperature = 0.9;
+  }
+
+  try {
+    var res = UrlFetchApp.fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'post',
+      contentType: 'application/json',
+      headers: { 'Authorization': 'Bearer ' + key },
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+    var code = res.getResponseCode();
+    if (code !== 200) return { ok: false, error: 'api_' + code, detail: res.getContentText().slice(0, 300) };
+    var data = JSON.parse(res.getContentText());
+    var text = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+    var themes = parseThemes(text);
+    if (!themes.length) return { ok: false, error: 'parse_failed', detail: text.slice(0, 300) };
+    return { ok: true, themes: themes };
+  } catch (err) {
+    return { ok: false, error: 'fetch_error', detail: String(err) };
+  }
+}
+
+// モデル出力からテーマ配列を取り出す（JSON配列優先、ダメなら行で分解）
+function parseThemes(text) {
+  var m = text.match(/\[[\s\S]*\]/);
+  if (m) { try { var a = JSON.parse(m[0]); if (Array.isArray(a)) return a.map(String).map(function (s) { return s.trim(); }).filter(Boolean).slice(0, 8); } catch (e) {} }
+  return text.split('\n').map(function (l) {
+    return l.replace(/^[\s\-・\d０-９.、)）「」"]+/, '').replace(/[「」"]+$/, '').trim();
+  }).filter(function (l) { return l.length >= 6 && l.length <= 60; }).slice(0, 8);
 }
 
 /* ---------- デバッグ ---------- */

@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>メモ書きテーマ提案｜朝活</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-top:#FCF6EC; --bg-mid:#F2EADC; --bg-bot:#ECE6DC;
+    --card:#FCFAF4; --ink:#26241F; --sub:#6E6A62; --line:#E6DECF;
+    --accent:#C98A5E; --accent2:#B0723F; --sky:#6E8593; --green:#7E9B72;
+    --shadow:0 6px 24px rgba(176,114,63,.12);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Noto Sans JP',sans-serif;font-weight:300;
+    background:
+      radial-gradient(900px 500px at 50% -4%, rgba(214,150,95,.22), transparent 56%),
+      radial-gradient(680px 520px at 85% 104%, rgba(110,133,147,.10), transparent 58%),
+      linear-gradient(168deg,var(--bg-top) 0%,var(--bg-mid) 55%,var(--bg-bot) 100%);
+    background-attachment:fixed;
+    color:var(--ink); min-height:100vh; padding:22px 18px 60px;
+  }
+  .mincho{font-family:'Shippori Mincho',serif}
+  .wrap{max-width:760px;margin:0 auto}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+  .logo{font-family:'Shippori Mincho',serif;font-size:21px;font-weight:600;display:flex;align-items:center;letter-spacing:.08em}
+  .logo span{color:var(--accent)}
+  .nav-link{color:var(--sub);font-size:13px;text-decoration:none;border:1px solid var(--line);background:var(--card);padding:9px 12px;border-radius:11px;cursor:pointer}
+  .nav-link:hover{border-color:var(--accent);color:var(--accent)}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:24px 22px;margin-bottom:18px}
+  .lead{text-align:center;margin-bottom:8px}
+  .lead h1{font-family:'Shippori Mincho',serif;font-size:25px;font-weight:600;letter-spacing:.06em;margin-bottom:8px}
+  .lead p{color:var(--sub);font-size:13.5px;line-height:1.8}
+
+  .q{margin-bottom:22px}
+  .q:last-child{margin-bottom:0}
+  .q-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+  .q-no{font-family:'Shippori Mincho',serif;font-size:15px;color:var(--accent);font-weight:600;letter-spacing:.1em}
+  .q-title{font-size:15px;font-weight:500}
+  .q-hint{font-size:12px;color:var(--sub);margin-left:auto}
+  .chips{display:flex;flex-wrap:wrap;gap:9px}
+  .chip{border:1px solid var(--line);background:#fff;color:var(--ink);font-family:'Noto Sans JP',sans-serif;font-size:13.5px;font-weight:400;padding:10px 15px;border-radius:13px;cursor:pointer;transition:.15s;user-select:none}
+  .chip:hover{border-color:var(--accent)}
+  .chip.on{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;box-shadow:0 4px 14px rgba(201,138,94,.32)}
+
+  .actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+  .btn{font-family:'Noto Sans JP',sans-serif;font-size:15px;font-weight:500;border:none;border-radius:14px;padding:14px 30px;cursor:pointer;transition:.15s}
+  .btn-main{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 6px 18px rgba(201,138,94,.34)}
+  .btn-main:hover{transform:translateY(-1px);box-shadow:0 9px 22px rgba(201,138,94,.4)}
+  .btn-ghost{background:#fff;color:var(--sub);border:1px solid var(--line)}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+  .btn-ai{background:#fff;color:var(--accent2);border:1px solid var(--accent)}
+  .btn-ai:hover{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}
+  .btn:disabled{opacity:.55;cursor:default;transform:none!important}
+  textarea#free-text{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:300;color:var(--ink);resize:vertical;background:#fff;margin-top:10px}
+  textarea#free-text:focus{outline:none;border-color:var(--accent)}
+  #free-card .q-head{margin-bottom:0}
+  .spinner{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.5);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;margin-right:8px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .ai-badge{font-size:11px;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:8px;padding:3px 9px;margin-left:8px;font-weight:400;letter-spacing:.04em}
+
+  /* 結果 */
+  #result{display:none}
+  .result-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  .result-head .t{font-family:'Shippori Mincho',serif;font-size:18px;font-weight:600;letter-spacing:.04em}
+  .result-head .t small{color:var(--sub);font-family:'Noto Sans JP';font-size:12px;font-weight:300;margin-left:8px}
+  .themes{display:flex;flex-direction:column;gap:11px}
+  .theme{display:flex;align-items:center;gap:14px;border:1px solid var(--line);background:#fff;border-radius:14px;padding:15px 17px;cursor:pointer;transition:.15s}
+  .theme:hover{border-color:var(--accent);box-shadow:0 4px 14px rgba(201,138,94,.16);transform:translateY(-1px)}
+  .theme .num{font-family:'Shippori Mincho',serif;font-size:15px;color:var(--accent);font-weight:600;min-width:20px}
+  .theme .txt{font-size:15px;line-height:1.7;flex:1}
+  .theme .tag{font-size:11px;color:var(--sub);border:1px solid var(--line);border-radius:8px;padding:3px 8px;white-space:nowrap}
+
+  /* 選択後の大表示 */
+  #picked{display:none;text-align:center;padding:34px 22px}
+  #picked .eyebrow{color:var(--accent);font-size:12px;letter-spacing:.3em;margin-bottom:16px}
+  #picked .big{font-family:'Shippori Mincho',serif;font-size:26px;font-weight:600;line-height:1.6;margin-bottom:8px}
+  #picked .meta{color:var(--sub);font-size:12.5px;margin-bottom:26px}
+  #picked .note{color:var(--sub);font-size:12.5px;line-height:1.9;max-width:440px;margin:0 auto 26px;border-top:1px solid var(--line);padding-top:18px}
+  .toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;font-size:13px;padding:11px 20px;border-radius:12px;opacity:0;pointer-events:none;transition:.25s}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .footnote{text-align:center;color:var(--sub);font-size:11.5px;margin-top:8px;line-height:1.8}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">静朝<span>・</span>メモ書きテーマ</div>
+    <a class="nav-link" href="cockpit.html">← コックピットへ</a>
+  </header>
+
+  <!-- 入力 -->
+  <div id="form">
+    <div class="card lead">
+      <h1>今日、何について考える？</h1>
+      <p>3つの問いに答えると、5分メモ書きに値する「深い問い」を提案します。<br>迷ったら下の「完全おまかせ」でも。</p>
+    </div>
+
+    <div class="card">
+      <div class="q">
+        <div class="q-head"><span class="q-no">Q1</span><span class="q-title">どの領域について考えたい？</span><span class="q-hint">複数OK</span></div>
+        <div class="chips" id="q-domain"></div>
+      </div>
+      <div class="q">
+        <div class="q-head"><span class="q-no">Q2</span><span class="q-title">いまの状態は？</span><span class="q-hint">複数OK</span></div>
+        <div class="chips" id="q-state"></div>
+      </div>
+      <div class="q">
+        <div class="q-head"><span class="q-no">Q3</span><span class="q-title">どの時間軸で考える？</span><span class="q-hint">1つ</span></div>
+        <div class="chips" id="q-time"></div>
+      </div>
+    </div>
+
+    <div class="card" id="free-card">
+      <div class="q-head"><span class="q-no">＋</span><span class="q-title">いまの気分・悩みを一言（任意）</span><span class="q-hint">AI生成で活きる</span></div>
+      <textarea id="free-text" rows="2" placeholder="例：最近チームの空気が重い／やりたいことが定まらない…"></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-main" onclick="generate()">テーマを出す</button>
+      <button class="btn btn-ai" id="ai-btn" onclick="generateAI()">🤖 AIで深掘り</button>
+      <button class="btn btn-ghost" onclick="surprise()">🎲 完全おまかせ</button>
+    </div>
+    <div class="footnote">「テーマを出す」は一瞬・オフラインOK。「AIで深掘り」は一言の悩みに合わせて新しく作ります（数秒）。</div>
+  </div>
+
+  <!-- 結果一覧 -->
+  <div id="result">
+    <div class="card">
+      <div class="result-head">
+        <div class="t">あなたへの問い<small id="result-sub"></small></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" style="padding:9px 16px;font-size:13px" onclick="generate(true)">↻ 引き直す</button>
+          <button class="btn btn-ghost" style="padding:9px 16px;font-size:13px" onclick="back()">← 条件変更</button>
+        </div>
+      </div>
+      <div class="themes" id="themes"></div>
+      <div class="footnote">気になった問いをタップ → 5分、手を止めずに書く</div>
+    </div>
+  </div>
+
+  <!-- 選択後 -->
+  <div id="picked" class="card">
+    <div class="eyebrow">今日のメモ書きテーマ</div>
+    <div class="big mincho" id="picked-text"></div>
+    <div class="meta" id="picked-meta"></div>
+    <div class="note">手は止めない・きれいに書かない・浮かんだ順に。<br>1テーマ＝A4横1枚／4〜6行／各20〜30字を目安に。</div>
+    <div class="actions">
+      <button class="btn btn-main" onclick="copyPicked()">📋 コピー</button>
+      <button class="btn btn-ghost" onclick="reopen()">← 他の問いを見る</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const GAS_URL="https://script.google.com/macros/s/AKfycbxIkRhv92IAh7JJXEmzbAKkNnPKyCmxDOTA_98IHDuOFxNcDrpG6B-7uKoqzwUqQJ_b/exec";
+
+/* ===== 選択肢 ===== */
+const DOMAINS = [
+  {id:'work',   l:'仕事・キャリア', n:'仕事'},
+  {id:'money',  l:'お金',           n:'お金'},
+  {id:'relation',l:'人間関係',      n:'人間関係'},
+  {id:'family', l:'家族',           n:'家族'},
+  {id:'love',   l:'恋愛・パートナー',n:'パートナーとの関係'},
+  {id:'health', l:'健康・体',       n:'健康'},
+  {id:'growth', l:'学び・成長',     n:'自分の成長'},
+  {id:'asakatsu',l:'朝活・習慣',    n:'朝活と習慣'},
+  {id:'hobby',  l:'趣味・遊び',     n:'趣味や遊び'},
+  {id:'life',   l:'人生・生き方',   n:'これからの人生'},
+];
+const STATES = [
+  {id:'worry',  l:'モヤモヤ・悩み'},
+  {id:'decide', l:'決断したい'},
+  {id:'improve',l:'改善したい'},
+  {id:'idea',   l:'アイデアが欲しい'},
+  {id:'reflect',l:'振り返りたい'},
+  {id:'goal',   l:'目標を立てたい'},
+];
+const TIMES = [
+  {id:'now',   l:'今日・直近'},
+  {id:'months',l:'数ヶ月'},
+  {id:'year',  l:'1年'},
+  {id:'future',l:'5年後〜将来'},
+];
+
+/* ===== 領域別・作り込みテーマ（0秒思考型の深い問い） ===== */
+const BANK = {
+  work:[
+    'いまの仕事で「自分にしかできない」と言えることは何か',
+    'もし今日で今の仕事を辞めるとしたら、いちばん心残りなことは何か',
+    '半年後の自分が「あの時やっておいてよかった」と思う一手は何か',
+    '自分の時間を最も奪っているのに価値を生んでいない仕事は何か',
+    '尊敬する人が自分の働き方を見たら、何を指摘するか',
+    '「忙しい」を言い訳にして避けている本当に大事な仕事は何か',
+    '今の延長線上にない、自分のキャリアの選択肢を3つ挙げると',
+    '自分は何で評価されたいのか、何では評価されたくないのか',
+  ],
+  money:[
+    'お金について、自分がいちばん不安に感じているのは具体的に何か',
+    'もし収入が今の倍になったら、本当は何にお金を使いたいか',
+    '今の支出で「これは惰性で払っている」と思うものは何か',
+    'お金を「使う・貯める・増やす」のどれが今の自分の課題か',
+    '10年後の安心のために、今日からできる小さな一歩は何か',
+    'お金に対する自分の思い込み（怖い／汚いなど）はどこから来たか',
+    '「お金があれば解決する」と思っている悩みは、本当にそうか',
+  ],
+  relation:[
+    '最近、関係を深めたいのに後回しにしている相手は誰か',
+    '自分が無意識に人に対して取っている「損なクセ」は何か',
+    'もっと早く謝るべき／感謝を伝えるべき相手は誰か',
+    '苦手な人から、実は学べることがあるとしたら何か',
+    '自分はどんな人に囲まれていたいか、そのために何を変えるか',
+    '人に頼れない理由は何か、頼ったら何が起きると恐れているか',
+    '最近もらった言葉で、ずっと心に残っているのはなぜか',
+  ],
+  family:[
+    '家族に対して、言えていないありがとうは何か',
+    '5年後も同じ関係でいるために、今日できることは何か',
+    '自分が親（家族）から受け継いで、良かったもの・手放したいものは何か',
+    '家族との時間で、惰性になっていることは何か',
+    'もし家族と過ごせる時間があと1年だとしたら、何を変えるか',
+    '自分は家族にどんな存在だと思われたいか',
+  ],
+  love:[
+    'パートナーとの関係で、最近見て見ぬふりをしていることは何か',
+    '相手に求めてばかりで、自分が与えられていないものは何か',
+    '理想のパートナーシップを一言で言うと何か、現状との差は',
+    '最近、相手の良いところを言葉にして伝えたか',
+    'ケンカや違和感の「本当の原因」はどこにあるか',
+    '一人の時間と二人の時間、自分にとっての理想のバランスは',
+  ],
+  health:[
+    '今の体の不調で、見て見ぬふりをしているサインは何か',
+    'もし健康診断が1ヶ月後なら、今日から変える習慣は何か',
+    '自分のエネルギーが最も高い時間帯を、何に使えているか',
+    '睡眠・食事・運動のうち、いちばんテコ入れすべきはどれか',
+    'ストレスを感じたとき、自分が無意識に取る悪い対処は何か',
+    '10年後も元気でいるために、今やめるべきことは何か',
+  ],
+  growth:[
+    '今、自分がいちばん伸ばしたい能力は何で、なぜか',
+    '学びたいと言いながら、実際には手をつけていないことは何か',
+    '去年の自分と比べて、確実に成長した点はどこか',
+    '自分の成長を止めている思い込みは何か',
+    '尊敬する人と自分の差は、能力か・習慣か・環境か',
+    '1年後「別人になった」と言われるために、何を変えるか',
+    'インプットばかりでアウトプットできていないことは何か',
+  ],
+  asakatsu:[
+    '朝活を続けて、自分の何が変わったか／変わっていないか',
+    '朝活をもっと没頭できる時間にするには、何を変えればいいか',
+    '今の朝活で「正直いらないかも」と感じている部分はあるか',
+    '朝活で得た気づきを、日中の行動にどう活かせているか',
+    'もし朝活が今の3倍効果的になるとしたら、何が起きているか',
+    '理想の1日の始まりを描くと、朝活はどんな役割を担うか',
+    '習慣が続く時と続かない時の、自分なりの違いは何か',
+  ],
+  hobby:[
+    '最近、純粋に「楽しい」と感じた瞬間はいつで、なぜか',
+    'やってみたいけど「時間がない」で諦めていることは何か',
+    '自分にとっての遊びと仕事の境界はどこにあるか',
+    '子どもの頃に夢中だったことから、今ヒントになることは',
+    'お金や時間の制約がなければ、今週末に何をするか',
+    '趣味を通じて自分はどんな自分になりたいのか',
+  ],
+  life:[
+    '人生の最後に「いい人生だった」と思うために必要な要素は何か',
+    '今の自分が、5年前の自分に一番伝えたいことは何か',
+    '「いつかやる」と言い続けて、今やらない理由は本当に正当か',
+    '自分が大事にしたい価値観を3つ挙げると何か',
+    '今の生き方は、自分が選んだものか・流されているものか',
+    'もし1年後に大きな決断をするなら、今から準備すべきことは',
+    '誰の人生を生きているか——自分の基準で選べているか',
+  ],
+};
+
+/* ===== 状態テンプレ（領域名を差し込む） ===== */
+const STATE_T = {
+  worry:  d=>[`${d}について、今いちばんモヤモヤしているのは具体的に何か`, `${d}の悩みの「根っこ」にあるものは何か`],
+  decide: d=>[`${d}で今いちばん決めたいことは何か、決められない理由は`, `${d}について、選択肢を全部書き出すと何があるか`],
+  improve:d=>[`${d}を10%でも良くするために、明日からできることは何か`, `${d}でうまくいっていないことの真の原因はどこか`],
+  idea:   d=>[`${d}について、制約がなければやってみたいことは何か`, `${d}を面白くするアイデアを思いつく限り挙げると`],
+  reflect:d=>[`${d}について、この1ヶ月で気づいたことは何か`, `${d}で「続けたいこと」と「やめたいこと」は何か`],
+  goal:   d=>[`${d}で、3ヶ月後に達成したい状態を一言で言うと`, `${d}の理想と現状の差は何で、最初の一歩は`],
+};
+/* ===== 時間軸テンプレ ===== */
+const TIME_T = {
+  now:   d=>`${d}について、今日いちばん集中すべきことは何か`,
+  months:d=>`数ヶ月後、${d}はどうなっていたいか`,
+  year:  d=>`1年後、${d}で「変わったな」と言われるなら何が変わったか`,
+  future:d=>`5年後、${d}が理想の状態だとしたら何が起きているか`,
+};
+
+/* ===== 状態管理 ===== */
+const sel = {domain:new Set(), state:new Set(), time:new Set()};
+
+function buildChips(){
+  const mk=(box, items, group, single)=>{
+    const el=document.getElementById(box);
+    el.innerHTML=items.map(it=>`<div class="chip" data-id="${it.id}">${it.l}</div>`).join('');
+    el.querySelectorAll('.chip').forEach(c=>{
+      c.onclick=()=>{
+        const id=c.dataset.id;
+        if(single){ sel[group].clear(); el.querySelectorAll('.chip').forEach(x=>x.classList.remove('on')); sel[group].add(id); c.classList.add('on'); }
+        else { if(sel[group].has(id)){sel[group].delete(id);c.classList.remove('on');} else {sel[group].add(id);c.classList.add('on');} }
+      };
+    });
+  };
+  mk('q-domain', DOMAINS, 'domain', false);
+  mk('q-state',  STATES,  'state',  false);
+  mk('q-time',   TIMES,   'time',   true);
+}
+buildChips();
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function buildPool(){
+  const doms = sel.domain.size? [...sel.domain] : DOMAINS.map(d=>d.id); // 未選択なら全領域
+  const pool=[];
+  doms.forEach(did=>{
+    const dm = DOMAINS.find(d=>d.id===did); if(!dm) return;
+    // 領域固有テーマ
+    (BANK[did]||[]).forEach(t=> pool.push({txt:t, tag:dm.l}));
+    // 状態テンプレ
+    sel.state.forEach(sid=>{ (STATE_T[sid]?STATE_T[sid](dm.n):[]).forEach(t=> pool.push({txt:t, tag:dm.l})); });
+    // 時間軸テンプレ
+    sel.time.forEach(tid=>{ const t=TIME_T[tid]?TIME_T[tid](dm.n):null; if(t) pool.push({txt:t, tag:dm.l}); });
+  });
+  // 重複除去
+  const seen=new Set(); return pool.filter(p=> seen.has(p.txt)?false:(seen.add(p.txt),true));
+}
+
+function subLabel(){
+  const parts=[];
+  if(sel.domain.size) parts.push([...sel.domain].map(id=>DOMAINS.find(d=>d.id===id).l).join('・'));
+  if(sel.state.size)  parts.push([...sel.state].map(id=>STATES.find(s=>s.id===id).l).join('・'));
+  if(sel.time.size)   parts.push([...sel.time].map(id=>TIMES.find(t=>t.id===id).l).join(''));
+  return parts.length? '（'+parts.join(' / ')+'）' : '（おまかせ）';
+}
+
+function render(list, aiMode){
+  document.getElementById('themes').innerHTML = list.map((p,i)=>
+    `<div class="theme" onclick='pick(${JSON.stringify(p.txt)}, ${JSON.stringify(p.tag)})'>
+      <span class="num">${i+1}</span><span class="txt">${p.txt}</span><span class="tag">${p.tag}</span>
+    </div>`).join('');
+  const sub=document.getElementById('result-sub');
+  sub.innerHTML = subLabel() + (aiMode? ' <span class="ai-badge">AI</span>' : '');
+}
+
+function generate(reshuffle){
+  const pool = buildPool();
+  const n = Math.min(6, pool.length);
+  const picks = shuffle(pool).slice(0, n);
+  render(picks);
+  document.getElementById('form').style.display='none';
+  document.getElementById('result').style.display='block';
+  document.getElementById('picked').style.display='none';
+  if(!reshuffle) window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function surprise(){
+  sel.domain.clear(); sel.state.clear(); sel.time.clear();
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  generate();
+}
+
+/* ===== 直近に選んだテーマ（重複回避用） ===== */
+function getRecent(){ try{ return JSON.parse(localStorage.getItem('asakatsu_recent_themes')||'[]'); }catch(e){ return []; } }
+function pushRecent(t){ let a=getRecent().filter(x=>x!==t); a.unshift(t); a=a.slice(0,20); localStorage.setItem('asakatsu_recent_themes', JSON.stringify(a)); }
+
+/* ===== AIで深掘り生成（GAS経由） ===== */
+async function generateAI(){
+  const btn=document.getElementById('ai-btn');
+  const orig=btn.innerHTML;
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>考え中…';
+  const body={
+    action:'genThemes',
+    text: document.getElementById('free-text').value.trim(),
+    domains:[...sel.domain].map(id=>DOMAINS.find(d=>d.id===id).l),
+    states:[...sel.state].map(id=>STATES.find(s=>s.id===id).l),
+    time: sel.time.size? TIMES.find(t=>t.id===[...sel.time][0]).l : '',
+    recent: getRecent()
+  };
+  try{
+    const r=await fetch(GAS_URL,{method:'POST',body:JSON.stringify(body)});
+    const res=await r.json();
+    if(!res.ok || !res.themes || !res.themes.length) throw new Error(res.error||'no themes');
+    const list=res.themes.map(t=>({txt:t, tag:'AI'}));
+    render(list, true);
+    document.getElementById('form').style.display='none';
+    document.getElementById('result').style.display='block';
+    document.getElementById('picked').style.display='none';
+    window.scrollTo({top:0,behavior:'smooth'});
+  }catch(e){
+    toast(e.message==='no_api_key'?'AIキー未設定。通常版で出します':'AI接続に失敗。通常版で出します');
+    generate(); // フォールバック：静的バンク
+  }finally{
+    btn.disabled=false; btn.innerHTML=orig;
+  }
+}
+
+function back(){
+  document.getElementById('result').style.display='none';
+  document.getElementById('picked').style.display='none';
+  document.getElementById('form').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+let pickedText='';
+function pick(txt, tag){
+  pickedText=txt;
+  pushRecent(txt);
+  document.getElementById('picked-text').textContent = txt;
+  document.getElementById('picked-meta').textContent = tag;
+  document.getElementById('result').style.display='none';
+  document.getElementById('picked').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function reopen(){
+  document.getElementById('picked').style.display='none';
+  document.getElementById('result').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function copyPicked(){
+  navigator.clipboard.writeText(pickedText).then(()=>toast('コピーしました'),()=>toast('コピーできませんでした'));
+}
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1800);
+}
+</script>
+</body>
+</html>
